@@ -2,16 +2,20 @@
   "name": "assignment-api-design",
   "version": "1.0.0",
   "description": "In this assignment, you will implement a web API following the theory of REST. We encourage you to have your ideas about the API service to build. Maybe you have some idea you want to start with through an API-driven design? For those of you without any ideas, we present a scenario below. That will also give a hint of the extent of this assignment.",
-  "main": "index.js",
+  "type": "module",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon --inspect -r dotenv/config src/server.js",
+    "lint": "npx eslint ./src || exit 0",
+    "lint:fix": "npx eslint ./src --fix || exit 0"
   },
   "repository": {
     "type": "git",
     "url": "git@gitlab.lnu.se:1dv027/student/ek223ur/assignment-api-design.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "ek223ur",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
