@@ -1,3 +1,6 @@
 {
-  "ext": "ts,js,json"
+  "ext": "ts,json",
+  "watch": ["src"],
+  "ignore": ["node_modules/**"],
+  "exec": "ts-node ./src/server.ts"
 }

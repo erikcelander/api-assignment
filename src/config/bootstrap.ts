@@ -5,12 +5,10 @@
  * @version 2.0.0
  */
 
-import { IoCContainer } from '../util/IoCContainer.js'
-// import { TaskModel } from '../models/TaskModel.js'
-// import { TaskRepository } from '../repositories/TaskRepository.js'
-// import { TasksService } from '../services/TasksService.js'
-// import { TasksController } from '../controllers/TasksController.js'
+import { IoCContainer } from '../util/IoCContainer'
+import dotenv from 'dotenv'
 
+dotenv.config()
 const iocContainer = new IoCContainer()
 
 iocContainer.register('ConnectionString', process.env.DB_CONNECTION_STRING)

@@ -7,34 +7,27 @@ export class IoCContainer {
    *
    * @type {Map}
    */
-  #services
+  #services: Map<string, { definition: any; dependencies: string[]; singleton: boolean; type: boolean }>
 
   /**
    * A collection of single instances.
    *
    * @type {Map}
    */
-  #singletons
+  #singletons: Map<string, any>
 
   /**
    * Initializes a new instance.
    */
-  constructor () {
+  constructor() {
     this.#services = new Map()
     this.#singletons = new Map()
   }
 
   /**
    * Registers a service with the container.
-   *
-   * @param {string} name - The service's name.
-   * @param {*} definition - The service's definition.
-   * @param {object} options - Configuration options for the service.
-   * @param {string[]} [options.dependencies=[]] -  An array of dependency names for the service. An empty array by default.
-   * @param {boolean} [options.singleton=false] -  If true, the service will be treated as a singleton instance. False by default.
-   * @param {boolean} [options.type=false] -  If true, the 'definition' parameter will be treated as a constructor. False by default.
    */
-  register (name, definition, { dependencies = [], singleton = false, type = false } = {}) {
+  register(name: string, definition: any, { dependencies = [], singleton = false, type = false } = {}): void {
     this.#services.set(
       name,
       {
@@ -51,7 +44,7 @@ export class IoCContainer {
    * @param {string} name - The service's name to resolve.
    * @returns {*} A service.
    */
-  resolve (name) {
+  resolve(name: string): any {
     const service = this.#services.get(name)
 
     if (!service) {
@@ -74,6 +67,7 @@ export class IoCContainer {
       const instance = this.#createInstance(service)
       this.#singletons.set(name, instance)
     }
+
     return this.#singletons.get(name)
   }
 
@@ -83,9 +77,8 @@ export class IoCContainer {
    * @param {object} service - The service object, containing its definition and dependencies.
    * @returns {*} A new instance.
    */
-  #createInstance (service) {
+  #createInstance(service: { definition: any; dependencies: string[] }): any {
     const args = service.dependencies?.map((dependency) => this.resolve(dependency)) || []
-    /* eslint-disable-next-line new-cap */
     return new service.definition(...args)
   }
 }
