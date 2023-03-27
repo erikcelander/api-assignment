@@ -22,16 +22,22 @@ export class AuthController {
    */
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = new User({
-        password: req.body.password,
-        email: req.body.email,
-      })
+      const { email, password } = req.body
+      console.log(req.body)
+  
+      if (!email || !password) {
+        throw new Error('Email and password are required')
+      }
+  
+      const user = new User({ email, password })
       await user.save()
-      res.status(201).json({ id: user.id })
-    } catch (error) {
+  
+      res.status(201).json({ message: 'Registration successful' })
+    } catch (error: any) {
       next(error)
     }
   }
+  
 
   /**
    * Logs in the user and returns an access token.
@@ -46,12 +52,13 @@ export class AuthController {
       const user = await User.authenticate(req.body.email, req.body.password) ?? null
 
       if (user) {
+        
         const payload = {
           email: user.email,
           id: user._id,
         }
 
-        const accessToken = jwt.sign(payload, Buffer.from(process.env.ACCESS_TOKEN_SECRET!, 'base64'), {
+        const accessToken = jwt.sign(payload, Buffer.from(process.env.ACCESS_TOKEN_PRIVATE!, 'base64'), {
           algorithm: 'RS256',
           expiresIn: process.env.ACCESS_TOKEN_LIFE!,
         })

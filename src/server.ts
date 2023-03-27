@@ -30,8 +30,9 @@ async function startServer(): Promise<void> {
     // Set up a morgan logger using the dev format for log entries.
     app.use(logger('dev'))
 
-    // Parse requests of the content type application/json.
+    // Parse requests of the content type application/json and application/x-www-form-urlencoded.
     app.use(express.json())
+    app.use(express.urlencoded({ extended: true }))
 
     // Register routes.
     app.use('/', router)
