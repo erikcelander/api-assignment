@@ -13,10 +13,11 @@ import createError, { HttpError } from 'http-errors'
 import { router } from './routes/router'
 import { connectDB } from './config/mongoose'
 
-const PORT: number = parseInt(process.env.PORT || '3000')
 
 async function startServer(): Promise<void> {
   try {
+    const PORT: number = parseInt(process.env.PORT || '3000')
+
     const connectionString: string = container.resolve('ConnectionString')
     await connectDB(connectionString)
 

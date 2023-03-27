@@ -2,9 +2,9 @@
  * Module for the UserService.
  */
 
-import { MongooseServiceBase } from './MongooseServiceBase.js'
-import { UserRepository } from '../repositories/UserRepository.js'
-import { IUser, User } from '../models/user'
+import { MongooseServiceBase } from './MongooseServiceBase'
+import { UserRepository } from '../repositories/UserRepository'
+import { IUser } from '../models/user'
 
 /**
  * Encapsulates a user service.

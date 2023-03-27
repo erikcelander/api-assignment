@@ -1,8 +1,10 @@
 import express, { Request, Response } from 'express'
 import { UserController } from '../../../../controllers/UserController'
+import { container } from '../../../../config/bootstrap'
 
 export const router = express.Router()
-const controller = new UserController()
+
+const controller = container.resolve('UserController') as UserController
 
 
 router.post('/register', (req: Request, res: Response ) => {

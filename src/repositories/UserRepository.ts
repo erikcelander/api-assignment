@@ -2,7 +2,7 @@
  * Module for the UserRepository.
  */
 
-import { MongooseRepositoryBase } from './MongooseRepositoryBase.js'
+import { MongooseRepositoryBase } from './MongooseRepositoryBase'
 import { IUser, User } from '../models/user'
 
 /**

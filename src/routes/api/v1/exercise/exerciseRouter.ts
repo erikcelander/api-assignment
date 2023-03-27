@@ -1,7 +1,12 @@
 import express, { Request, Response } from 'express'
 import { Exercise } from '../../../../models/exercise'
 
+import { ExerciseController } from '../../../../controllers/ExerciseController'
+import { container } from '../../../../config/bootstrap'
+
 export const router = express.Router()
+
+const controller = container.resolve('ExerciseController') as ExerciseController
 
 router.post('/add', async (req: Request, res: Response) => {
   try {

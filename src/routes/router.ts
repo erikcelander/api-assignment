@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express'
 import createError from 'http-errors'
 import { router as authRouter } from './api/v1/auth/authRouter'
-import { router as workoutsRouter } from './api/v1/workouts/workoutsRouter'
+import { router as workoutsRouter } from './api/v1/workout/workoutRouter'
 
 
 export const router = express.Router()
