@@ -37,13 +37,7 @@ const schema = new mongoose.Schema(
   {
     timestamps: true,
     toJSON: {
-      /**
-       * Performs a transformation of the resulting object to remove sensitive information.
-       *
-       * @param {object} doc - The mongoose document which is being converted.
-       * @param {object} ret - The plain object representation which has been converted.
-       */
-      transform: function (doc, ret) {
+      transform: function (_doc, ret) {
         delete ret._id
         delete ret.__v
       },

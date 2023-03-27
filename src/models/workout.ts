@@ -1,56 +1,53 @@
-import mongoose, { Schema, Document, Types } from 'mongoose'
-
-interface IExercise {
-  name: string
-  sets: number
-  reps: number
-  weight: number
-}
+import mongoose, { Document, Model } from 'mongoose'
+import { IExercise } from './exercise'
 
 interface IWorkout extends Document {
-  user: Types.ObjectId,
-  date: Date
-  exercises: IExercise[]
-  note?: string
+  exercises: Array<{
+    exercise: IExercise['_id']
+    reps: number
+    sets: number
+    weight: number
+  }>
 }
 
-const ExerciseSchema = new Schema<IExercise>({
-  name: {
-    type: String,
-    required: true,
-  },
-  sets: {
-    type: Number,
-    required: true,
-  },
-  reps: {
-    type: Number,
-    required: true,
-  },
-  weight: {
-    type: Number,
-    required: true,
-  },
-})
+interface IWorkoutModel extends Model<IWorkout> { }
 
-const WorkoutSchema = new Schema<IWorkout>({
-  user: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
+const schema = new mongoose.Schema(
+  {
+    exercises: [
+      {
+        exercise: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Exercise',
+          required: true,
+        },
+        reps: {
+          type: Number,
+          required: [true, 'You need to enter the amount of reps'],
+        },
+        sets: {
+          type: Number,
+          required: [true, 'You need to enter the amount of sets'],
+        },
+        weight: {
+          type: Number,
+          required: [true, 'You need to enter the weight'],
+        },
+      },
+    ],
   },
-  date: {
-    type: Date,
-    required: true,
-  },
-  exercises: {
-    type: [ExerciseSchema],
-    required: true,
-  },
-  note: {
-    type: String,
-    default: '',
-  },
-})
+  {
+    timestamps: true,
+    toJSON: {
+      transform: function (doc, ret) {
+        delete ret._id
+        delete ret.__v
+      },
+      virtuals: true
+    }
+  }
+)
 
-export const Workout = mongoose.model<IWorkout>('Workout', WorkoutSchema)
+const Workout: IWorkoutModel = mongoose.model<IWorkout>('Workout', schema)
+
+export { IWorkout, IWorkoutModel, Workout }
