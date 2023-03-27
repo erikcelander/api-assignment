@@ -4,7 +4,7 @@
 
 import { MongooseServiceBase } from './MongooseServiceBase.js'
 import { UserRepository } from '../repositories/UserRepository.js'
-import { IUser } from '../models/user'
+import { IUser, User } from '../models/user'
 
 /**
  * Encapsulates a user service.

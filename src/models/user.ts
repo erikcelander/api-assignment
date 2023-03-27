@@ -33,22 +33,30 @@ const schema = new mongoose.Schema(
       maxlength: [256, 'Password can only contain 256 characters'],
       writeOnly: true,
     },
-  },
-  {
-    timestamps: true,
-    toJSON: {
-      transform: function (_doc, ret) {
-        delete ret._id
-        delete ret.__v
-      },
-      virtuals: true // ensure virtual fields are serialized
-    }
-  }
-)
+  })
 
 schema.virtual('id').get(function () {
   return this._id.toHexString()
 })
+
+const convertOptions = {
+  virtuals: true,
+  versionKey: false,
+  /**
+   * Performs a transformation of the resulting object to remove sensitive information.
+   *
+   * @param {object} doc - The mongoose document which is being converted.
+   * @param {object} ret - The plain object representation which has been converted.
+   */
+  transform: (_doc: any, ret: { _id: any }) => {
+    delete ret._id
+  }
+}
+
+schema.set('timestamps', true)
+schema.set('toObject', convertOptions)
+schema.set('toJSON', convertOptions)
+
 
 schema.pre<IUser>('save', async function () {
   this.password = await bcrypt.hash(this.password, 6)

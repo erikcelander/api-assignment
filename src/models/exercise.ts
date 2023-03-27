@@ -16,19 +16,30 @@ const schema = new mongoose.Schema(
     description: {
       type: String,
       required: false,
-    },
-  },
-  {
-    timestamps: true,
-    toJSON: {
-      transform: function (_doc, ret) {
-        delete ret._id
-        delete ret.__v
-      },
-      virtuals: true
     }
+  })
+
+schema.virtual('id').get(function () {
+  return this._id.toHexString()
+})
+
+const convertOptions = {
+  virtuals: true,
+  versionKey: false,
+  /**
+   * Performs a transformation of the resulting object to remove sensitive information.
+   *
+   * @param {object} _doc - The mongoose document which is being converted.
+   * @param {object} ret - The plain object representation which has been converted.
+   */
+  transform: (_doc: any, ret: { _id: any }) => {
+    delete ret._id
   }
-)
+}
+
+schema.set('timestamps', true)
+schema.set('toObject', convertOptions)
+schema.set('toJSON', convertOptions)
 
 const Exercise: IExerciseModel = mongoose.model<IExercise>('Exercise', schema)
 

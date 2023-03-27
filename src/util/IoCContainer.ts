@@ -27,7 +27,7 @@ export class IoCContainer {
   /**
    * Registers a service with the container.
    */
-  register(name: string, definition: any, { dependencies = [], singleton = false, type = false } = {}): void {
+  register(name: string, definition: any, { dependencies = [], singleton = false, type = false }: { dependencies?: string[], singleton?: boolean, type?: boolean } = {}): void {
     this.#services.set(
       name,
       {
@@ -37,7 +37,6 @@ export class IoCContainer {
         type: !!type
       })
   }
-
   /**
    * Resolves a value or object by name.
    *

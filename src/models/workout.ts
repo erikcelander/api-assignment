@@ -2,6 +2,7 @@ import mongoose, { Document, Model } from 'mongoose'
 import { IExercise } from './exercise'
 
 interface IWorkout extends Document {
+  name: string,
   exercises: Array<{
     exercise: IExercise['_id']
     reps: number
@@ -14,6 +15,10 @@ interface IWorkoutModel extends Model<IWorkout> { }
 
 const schema = new mongoose.Schema(
   {
+    name: {
+      type: String,
+      required: [true, 'You need to enter a workout name'],
+    },
     exercises: [
       {
         exercise: {
@@ -35,18 +40,30 @@ const schema = new mongoose.Schema(
         },
       },
     ],
-  },
-  {
-    timestamps: true,
-    toJSON: {
-      transform: function (doc, ret) {
-        delete ret._id
-        delete ret.__v
-      },
-      virtuals: true
-    }
+  })
+
+schema.virtual('id').get(function () {
+  return this._id.toHexString()
+})
+
+const convertOptions = {
+  virtuals: true,
+  versionKey: false,
+  /**
+   * Performs a transformation of the resulting object to remove sensitive information.
+   *
+   * @param {object} doc - The mongoose document which is being converted.
+   * @param {object} ret - The plain object representation which has been converted.
+   */
+  transform: (_doc: any, ret: { _id: any }) => {
+    delete ret._id
   }
-)
+}
+
+schema.set('timestamps', true)
+schema.set('toObject', convertOptions)
+schema.set('toJSON', convertOptions)
+
 
 const Workout: IWorkoutModel = mongoose.model<IWorkout>('Workout', schema)
 

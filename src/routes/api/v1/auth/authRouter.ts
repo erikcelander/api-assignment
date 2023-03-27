@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express'
-import { AuthController } from '../../../../controllers/authController'
+import { UserController } from '../../../../controllers/UserController'
 
 export const router = express.Router()
-const controller = new AuthController()
+const controller = new UserController()
 
 
 router.post('/register', (req: Request, res: Response ) => {
