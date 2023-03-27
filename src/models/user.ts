@@ -67,5 +67,7 @@ schema.static('authenticate', async function (email: string, password: string): 
   return null
 })
 
-export const User: IUserModel = mongoose.model<IUser, IUserModel>('User', schema)
+const User: IUserModel = mongoose.model<IUser, IUserModel>('User', schema)
+
+export { User, IUser, IUserModel }
 
