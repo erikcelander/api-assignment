@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user: {
     email: string
     id: string
@@ -24,13 +24,13 @@ export async function authenticateJWT(req: Request, res: Response, next: NextFun
     const [authenticationScheme, token] = (req.headers.authorization?.split(' ') ?? []) as [string, string]
 
     if (authenticationScheme !== 'Bearer') {
-      throw new Error('Invalid authentication scheme.')
+      throw new Error('Invalid authentication scheme. Authorization header must start with "Bearer"')
     }
 
     const payload = jwt.verify(token, Buffer.from(process.env.ACCESS_TOKEN_PUBLIC!, 'base64'))
 
-    if (typeof payload !== 'object' || payload === null) {
-      throw new Error('Invalid payload.')
+    if (typeof payload !== 'object' || payload === null || !('email' in payload) || !('id' in payload)) {
+      throw new Error('Invalid payload. Payload must contain "email" and "id" properties.')
     }
 
     (req as AuthenticatedRequest).user = {
@@ -40,13 +40,11 @@ export async function authenticateJWT(req: Request, res: Response, next: NextFun
 
     next()
   } catch (err: any) {
-    if (err.name === 'JsonWebTokenError') {
-      err.status = 401
-      err.message = 'Access token invalid or not provided.'
-      next(err)
-    }
+    err.message = 'Access token invalid or expired.'
+    err.status = 401
     next(err)
   }
 }
+
 
 

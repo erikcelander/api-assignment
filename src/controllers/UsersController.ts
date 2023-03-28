@@ -8,17 +8,17 @@
 import jwt from 'jsonwebtoken'
 import { Request, Response, NextFunction } from 'express'
 import { User, IUser } from '../models/user'
-import { UserService } from '../services/UserService'
+import { UsersService } from '../services/UsersService'
 
 
 /**
  * Encapsulates a controller.
  */
-export class UserController {
+export class UsersController {
 
-  #service: UserService
+  #service: UsersService
 
-  constructor(service: UserService) {
+  constructor(service: UsersService) {
     this.#service = service
   }
   /**

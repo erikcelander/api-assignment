@@ -6,7 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express'
-import { WorkoutService } from '../services/WorkoutService'
+import { WorkoutsService } from '../services/WorkoutsService'
 
 
 /**
@@ -14,9 +14,9 @@ import { WorkoutService } from '../services/WorkoutService'
  */
 export class WorkoutController {
 
-  #service: WorkoutService
+  #service: WorkoutsService
 
-  constructor(service: WorkoutService) {
+  constructor(service: WorkoutsService) {
     this.#service = service
   }
  

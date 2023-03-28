@@ -16,19 +16,21 @@ import { UserRepository } from '../repositories/UserRepository'
 import { ExerciseRepository } from '../repositories/ExerciseRepository'
 import { WorkoutRepository } from '../repositories/WorkoutRepository'
 
-import { UserService } from '../services/UserService'
-import { ExerciseService } from '../services/ExerciseService'
-import { WorkoutService } from '../services/WorkoutService'
+import { UsersService } from '../services/UsersService'
+import { ExercisesService } from '../services/ExercisesService'
+import { WorkoutsService } from '../services/WorkoutsService'
 
-import { UserController } from '../controllers/UserController'
-import { ExerciseController } from '../controllers/ExerciseController'
-import { WorkoutController } from '../controllers/WorkoutController'
+import { UsersController } from '../controllers/UsersController'
+import { ExerciseController } from '../controllers/ExercisesController'
+import { WorkoutController } from '../controllers/WorkoutsController'
 
 dotenv.config()
 const iocContainer = new IoCContainer()
 
 // Register the connection string for the database.
 iocContainer.register('ConnectionString', process.env.DB_CONNECTION_STRING)
+
+// Register model types for user, exercise, and workout.
 
 iocContainer.register('UserType', User, { type: true })
 iocContainer.register('ExerciseType', Exercise, { type: true })
@@ -50,29 +52,29 @@ iocContainer.register('WorkoutRepository', WorkoutRepository,  {
  })
 
 // Register services for user, exercise, and workout, with their respective repositories as dependencies, as singletons.
-iocContainer.register('UserService', UserService, {
+iocContainer.register('UserService', UsersService, {
   dependencies: ['UserRepository'],
   singleton: true
 })
-iocContainer.register('ExerciseService', ExerciseService, {
+iocContainer.register('ExerciseService', ExercisesService, {
   dependencies: ['ExerciseRepository'],
   singleton: true
 })
-iocContainer.register('WorkoutService', WorkoutService, {
+iocContainer.register('WorkoutService', WorkoutsService, {
   dependencies: ['WorkoutRepository'],
   singleton: true
 })
 
 // Register controllers for user, exercise, and workout, with their respective services as dependencies, as singletons.
-iocContainer.register('UserController', UserController, {
+iocContainer.register('UsersController', UsersController, {
   dependencies: ['UserService'],
   singleton: true
 })
-iocContainer.register('ExerciseController', ExerciseController, {
+iocContainer.register('ExercisesController', ExerciseController, {
   dependencies: ['ExerciseService'],
   singleton: true
 })
-iocContainer.register('WorkoutController', WorkoutController, {
+iocContainer.register('WorkoutsController', WorkoutController, {
   dependencies: ['WorkoutService'],
   singleton: true
 })

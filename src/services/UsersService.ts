@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken'
 /**
  * Encapsulates a user service.
  */
-export class UserService extends MongooseServiceBase<IUser> {
+export class UsersService extends MongooseServiceBase<IUser> {
   /**
    * Initializes a new instance.
    */
