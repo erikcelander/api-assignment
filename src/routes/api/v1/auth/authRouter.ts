@@ -4,7 +4,7 @@ import { container } from '../../../../config/bootstrap'
 
 export const router = express.Router()
 
-const controller = container.resolve('UserController') as UsersController
+const controller = container.resolve('UsersController') as UsersController
 
 router.post('/register', (req: Request, res: Response, next: NextFunction) => {
   controller.register(req, res, next)

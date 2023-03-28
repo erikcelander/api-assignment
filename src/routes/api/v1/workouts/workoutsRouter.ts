@@ -7,7 +7,7 @@ import { AuthenticatedRequest } from '../../../../middleware/authJWT'
 
 export const router = express.Router()
 
-const controller = container.resolve('WorkoutController') as WorkoutController
+const controller = container.resolve('WorkoutsController') as WorkoutController
 
 router.post('/create', async (req: Request, res: Response) => {
   try {

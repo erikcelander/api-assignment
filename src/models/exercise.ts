@@ -2,7 +2,8 @@ import mongoose, { Document, Model } from 'mongoose'
 
 interface IExercise extends Document {
   name: string
-  description: string
+  description: string,
+  owner: string
 }
 
 interface IExerciseModel extends Model<IExercise> { }
@@ -17,7 +18,7 @@ const schema = new mongoose.Schema({
     required: false
   },
   owner: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'User',
     required: true
   }

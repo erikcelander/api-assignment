@@ -6,7 +6,7 @@ import { container } from '../../../../config/bootstrap'
 
 export const router = express.Router()
 
-const controller = container.resolve('ExerciseController') as ExerciseController
+const controller = container.resolve('ExercisesController') as ExerciseController
 
 router.post('/add', async (req: Request, res: Response, next: NextFunction) => {
   try {

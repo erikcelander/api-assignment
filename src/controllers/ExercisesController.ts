@@ -1,6 +1,14 @@
-import { Request, Response, NextFunction } from 'express'
+import mongoose, { Request, Response, NextFunction } from 'express'
 import { ExercisesService } from '../services/ExercisesService'
-import { Exercise } from '../models/exercise'
+import { IExercise, Exercise } from '../models/exercise'
+import { AuthenticatedRequest } from '../middleware/authJWT'
+import createError from 'http-errors'
+import { Document } from 'mongoose'
+
+
+interface ExerciseRequest extends Request {
+  exercise?: Document
+}
 
 
 /**
@@ -14,20 +22,50 @@ export class ExerciseController {
     this.#service = service
   }
 
+  /**
+   * Provide req.exercise to the route if :id is present.
+   */
+  async loadExercise(req: Request, res: Response, next: NextFunction, id: string) {
+    try {
+      // Get the exercise.
+      const exercise = await this.#service.getById(id)
+
+      // If no exercise found send a 404 (Not Found).
+      if (!exercise) {
+        next(createError(404, 'The requested resource was not found.'))
+        return
+      }
+
+      // Provide the exercise to req.
+      (req as ExerciseRequest).exercise = exercise
+
+      // Next middleware.
+      next()
+    } catch (error) {
+      next(error)
+    }
+  }
+
+
   async add(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, description } = req.body
+      const { user: { id } } = req as AuthenticatedRequest
 
       if (!name) {
         throw new Error('Exercise name is required.')
       }
 
-      const exercise = await Exercise.create({
-        name: name.trim(),
-        description: description?.trim(),
-      })
+      const exercise = await this.#service.insert({
+        name: name.trim() as string,
+        description: description?.trim() as string,
+        owner: id as string
+      } as IExercise)
 
-      res.status(201).json({ exercise })
+
+
+
+      res.status(201).json(exercise as IExercise)
     } catch (err) {
       next(err)
     }
