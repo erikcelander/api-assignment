@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import { Workout } from '../../../../models/workout'
 
 import { WorkoutController } from '../../../../controllers/WorkoutsController'
@@ -8,6 +8,9 @@ import { AuthenticatedRequest } from '../../../../middleware/authJWT'
 export const router = express.Router()
 
 const controller = container.resolve('WorkoutsController') as WorkoutController
+
+router.param('id', (req: Request, res: Response, next: NextFunction, id: string) => controller.loadWorkout(req, res, next, id))
+
 
 router.post('/create', async (req: Request, res: Response) => {
   try {
