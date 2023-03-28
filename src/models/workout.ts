@@ -8,7 +8,8 @@ interface IWorkout extends Document {
     reps: number
     sets: number
     weight: number
-  }>
+  }>,
+  owner: string
 }
 
 interface IWorkoutModel extends Model<IWorkout> { }
@@ -40,6 +41,11 @@ const schema = new mongoose.Schema(
         },
       },
     ],
+    owner: {
+      type: String,
+      ref: 'User',
+      required: true
+    }
   })
 
 schema.virtual('id').get(function () {
