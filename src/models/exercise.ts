@@ -7,17 +7,21 @@ interface IExercise extends Document {
 
 interface IExerciseModel extends Model<IExercise> { }
 
-const schema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'You need to enter an exercise name'],
-    },
-    description: {
-      type: String,
-      required: false,
-    }
-  })
+const schema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'You need to enter an exercise name']
+  },
+  description: {
+    type: String,
+    required: false
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }
+})
 
 schema.virtual('id').get(function () {
   return this._id.toHexString()
