@@ -10,15 +10,8 @@ const controller = container.resolve('ExercisesController') as ExerciseControlle
 
 router.param('id', (req: Request, res: Response, next: NextFunction, id: string) => controller.loadExercise(req, res, next, id))
 
-router.post('/add', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    controller.add(req, res, next)
+router.get('/', (req: Request, res: Response, next: NextFunction) => controller.get(req, res, next))
 
+router.get('/:id', (req: Request, res: Response, next: NextFunction) => controller.getAll(req, res, next))
 
-    
-  
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: 'Internal server error' })
-  }
-})
+router.post('/add', (req: Request, res: Response, next: NextFunction) => controller.add(req, res, next))

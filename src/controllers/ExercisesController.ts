@@ -72,16 +72,76 @@ export class ExerciseController {
   }
 
 
-  async get(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async get(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
+    res.json(req.exercise as IExercise)
+  }
 
+
+  async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const exercises = await this.#service.get()
+      res.json(exercises as IExercise[])
+    } catch (error) {
+      next(error)
+    }
+  }
+  async partiallyUpdate(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { name, description } = req.body
+
+      if (!req.exercise) {
+        throw createError(404, 'Exercise not found')
+      }
+
+      if (!name && !description) {
+        throw createError(400, 'At least one property (name or description) is required for partial updates.')
+      }
+
+      const partialExercise: Partial<IExercise> = {}
+      if (name) partialExercise.name = name.trim()
+      if (description) partialExercise.description = description.trim()
+
+      const updatedExercise = await this.#service.update(req.exercise.id, partialExercise)
+
+      res.json({ exercise: updatedExercise })
+    } catch (err) {
+      next(err)
+    }
   }
 
 
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { name, description } = req.body
 
+      const updatedExercise = await this.#service.update(req.params.id, {
+        name: name.trim(),
+        description: description?.trim(),
+      } as IExercise)
+
+      res.json({ exercise: updatedExercise })
+    } catch (error: any) {
+      const err = createError(error.name === 'ValidationError'
+        ? 400 // bad format
+        : 500 // something went really wrong
+      )
+      err.cause = error
+
+      next(err)
+    }
   }
 
+  /**
+   * Deletes the specified exercise.
+   */
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
-
+    try {
+      await this.#service.delete(req.params.id)
+      res
+        .status(204)
+        .end()
+    } catch (error) {
+      next(error)
+    }
   }
 }
