@@ -7,10 +7,8 @@ export const router = express.Router()
 const controller = container.resolve('UserController') as UserController
 
 
-router.post('/register', (req: Request, res: Response ) => {
-  controller.register(req, res, (error: any) => {
-    res.status(500).json({ message: error.message })
-  })
+router.post('/register', (req: Request, res: Response, next: NextFunction) => {
+  controller.register(req, res, next)
 })
 
 router.post('/login', (req: Request, res: Response, next: NextFunction) => {
