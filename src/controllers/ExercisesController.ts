@@ -25,7 +25,7 @@ export class ExerciseController {
   /**
    * Provide req.exercise to the route if :id is present.
    */
-  async loadExercise(req: Request, res: Response, next: NextFunction, id: string) {
+  async loadExercise(req: ExerciseRequest, res: Response, next: NextFunction, id: string) {
     try {
       // Get the exercise.
       const exercise = await this.#service.getById(id)
@@ -37,7 +37,7 @@ export class ExerciseController {
       }
 
       // Provide the exercise to req.
-      (req as ExerciseRequest).exercise = exercise
+      req.exercise = exercise
 
       // Next middleware.
       next()

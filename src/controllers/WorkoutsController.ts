@@ -7,7 +7,13 @@
 
 import { Request, Response, NextFunction } from 'express'
 import { WorkoutsService } from '../services/WorkoutsService'
+import { Document } from 'mongoose'
+import { Workout } from '../models/workout'
+import createError from 'http-errors'
 
+interface WorkoutRequest extends Request {
+  workout?: Document
+}
 
 /**
  * Encapsulates a controller.
@@ -19,22 +25,42 @@ export class WorkoutController {
   constructor(service: WorkoutsService) {
     this.#service = service
   }
+
+
+
+
+async loadWorkout(req: WorkoutRequest, res: Response, next: NextFunction, id: string) {
+  try {
+    const workout = await Workout.findById(id)
+
+    if (!workout) {
+      next(createError(404, 'The requested resource was not found.'))
+      return
+    }
+
+    req.workout = workout
+
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
  
 
-  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
- 
-  }
+  async create(req: Request, res: Response, next: NextFunction): Promise < void> {
 
-  async get(req: Request, res: Response, next: NextFunction): Promise<void> {
-   
-  }
+}
+
+  async get(req: Request, res: Response, next: NextFunction): Promise < void> {
+
+}
 
 
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
-   
-  }
+  async update(req: Request, res: Response, next: NextFunction): Promise < void> {
 
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
-   
-  }
+}
+
+  async delete (req: Request, res: Response, next: NextFunction): Promise < void> {
+
+}
 }
