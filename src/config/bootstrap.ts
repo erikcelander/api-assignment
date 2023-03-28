@@ -21,8 +21,8 @@ import { ExerciseService } from '../services/ExerciseService'
 import { WorkoutService } from '../services/WorkoutService'
 
 import { UserController } from '../controllers/UserController'
-//import { ExerciseController } from '../controllers/ExerciseController'
-//import { WorkoutController } from '../controllers/WorkoutController'
+import { ExerciseController } from '../controllers/ExerciseController'
+import { WorkoutController } from '../controllers/WorkoutController'
 
 dotenv.config()
 const iocContainer = new IoCContainer()
@@ -68,13 +68,13 @@ iocContainer.register('UserController', UserController, {
   dependencies: ['UserService'],
   singleton: true
 })
-/*iocContainer.register('ExerciseController', ExerciseController, {
+iocContainer.register('ExerciseController', ExerciseController, {
   dependencies: ['ExerciseService'],
   singleton: true
 })
 iocContainer.register('WorkoutController', WorkoutController, {
   dependencies: ['WorkoutService'],
   singleton: true
-})*/
+})
 
 export const container = Object.freeze(iocContainer)

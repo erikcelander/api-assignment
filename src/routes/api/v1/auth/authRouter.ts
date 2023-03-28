@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import { UserController } from '../../../../controllers/UserController'
 import { container } from '../../../../config/bootstrap'
 
@@ -13,8 +13,6 @@ router.post('/register', (req: Request, res: Response ) => {
   })
 })
 
-router.post('/login', (req: Request, res: Response ) => {
-  controller.login(req, res, (error: any) => {
-    res.status(500).json({ message: error.message })
-  })
+router.post('/login', (req: Request, res: Response, next: NextFunction) => {
+  controller.login(req, res, next)
 })

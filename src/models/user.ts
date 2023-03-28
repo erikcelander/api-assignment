@@ -62,7 +62,7 @@ schema.pre<IUser>('save', async function () {
   this.password = await bcrypt.hash(this.password, 6)
 })
 
-schema.static('authenticate', async function (email: string, password: string): Promise<IUser | null> {
+schema.static('authenticate', async function (email: string, password: string): Promise<IUser> {
   if (!email || !password) {
     throw new Error('Email and password are required')
   }
@@ -70,9 +70,9 @@ schema.static('authenticate', async function (email: string, password: string): 
   const user = await this.findOne({ email })
   if (user && (await bcrypt.compare(password, user.password))) {
     return user
+  } else {
+    throw new Error('Invalid email or password')
   }
-
-  return null
 })
 
 const User: IUserModel = mongoose.model<IUser, IUserModel>('User', schema)

@@ -6,7 +6,7 @@ import { container } from '../../../../config/bootstrap'
 
 export const router = express.Router()
 
-const controller = container.resolve('WorkoutsController') as WorkoutController
+/*const controller = container.resolve('WorkoutsController') as WorkoutController
 
 router.post('/create', async (req: Request, res: Response) => {
   try {
@@ -21,4 +21,4 @@ router.post('/create', async (req: Request, res: Response) => {
     console.error(error)
     res.status(500).json({ message: 'Internal server error' })
   }
-})
+})*/

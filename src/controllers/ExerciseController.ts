@@ -12,14 +12,21 @@ export class ExerciseController {
   constructor(service: ExerciseService) {
     this.#service = service
   }
- 
 
-  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async add(req: Request, res: Response, next: NextFunction): Promise<void> {
  
   }
 
+  async get(req: Request, res: Response, next: NextFunction): Promise<void> {
+   
+  }
 
-  async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+   
+  }
+
+  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
    
   }
 }

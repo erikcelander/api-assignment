@@ -10,6 +10,12 @@ const controller = container.resolve('ExerciseController') as ExerciseController
 
 router.post('/add', async (req: Request, res: Response) => {
   try {
+
+    controller.add(req, res, (error: any) => {
+      res.status(500).json({ message: error.message })
+    })
+    
+    
     const exercise = await Exercise.create({
       name: req.body.name.trim(),
       description: req.body.description?.trim(),

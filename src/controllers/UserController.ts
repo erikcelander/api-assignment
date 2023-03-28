@@ -53,25 +53,8 @@ export class UserController {
    */
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-
-      const user = await User.authenticate(req.body.email, req.body.password) ?? null
-
-      if (user) {
-
-        const payload = {
-          email: user.email,
-          id: user._id,
-        }
-
-        const accessToken = jwt.sign(payload, Buffer.from(process.env.ACCESS_TOKEN_PRIVATE!, 'base64'), {
-          algorithm: 'RS256',
-          expiresIn: process.env.ACCESS_TOKEN_LIFE!,
-        })
-
-        res.status(201).json({ access_token: accessToken })
-      } else {
-        throw new Error('Invalid credentials')
-      }
+      const accessToken = await this.#service.authenticate(req.body.email, req.body.password)
+      res.status(201).json({ access_token: accessToken })
     } catch (error: any) {
       error.status = 401
       next(error)

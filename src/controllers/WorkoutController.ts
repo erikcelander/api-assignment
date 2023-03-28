@@ -21,12 +21,20 @@ export class WorkoutController {
   }
  
 
-  async register(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
  
   }
 
+  async get(req: Request, res: Response, next: NextFunction): Promise<void> {
+   
+  }
 
-  async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+
+  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+   
+  }
+
+  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
    
   }
 }
