@@ -4,7 +4,8 @@ import { IExercise } from './exercise'
 interface IWorkout extends Document {
   name: string,
   exercises: Array<{
-    exercise: IExercise['_id']
+    name: string
+    id: string
     reps: number
     sets: number
     weight: number
@@ -22,9 +23,13 @@ const schema = new mongoose.Schema(
     },
     exercises: [
       {
-        exercise: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: 'Exercise',
+        _id : false,
+        name: {
+          type: String,
+          required: false,
+        },
+        id: {
+          type: String,
           required: true,
         },
         reps: {

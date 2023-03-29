@@ -75,7 +75,7 @@ iocContainer.register('ExercisesController', ExerciseController, {
   singleton: true
 })
 iocContainer.register('WorkoutsController', WorkoutController, {
-  dependencies: ['WorkoutService'],
+  dependencies: ['WorkoutService', 'ExerciseService'],
   singleton: true
 })
 

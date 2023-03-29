@@ -6,4 +6,8 @@ export class WorkoutsService extends MongooseServiceBase<IWorkout> {
   constructor(repository = new WorkoutRepository()) {
     super(repository)
   }
+
+  async getAmountOfWorkouts(id: string): Promise<number> {
+    return await (this._repository as WorkoutRepository).getAmountOfWorkouts(id)
+  }
 }

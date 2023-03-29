@@ -32,7 +32,7 @@ export class ExerciseController {
 
       // If no exercise found send a 404 (Not Found).
       if (!exercise) {
-        throw new Error('Exercise not found')
+        throw createError(404, 'The requested resource was not found.')
       }
 
       // Provide the exercise to req.
@@ -41,20 +41,18 @@ export class ExerciseController {
       // Next middleware.
       next()
     } catch (error: any) {
-      error.status = 404
-      error.message = 'The requested resource was not found.'
       next(error)
     }
   }
 
 
-  async add(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, description } = req.body
       const { user: { id } } = req as AuthenticatedRequest
 
       if (!name) {
-        throw new Error('Exercise name is required.')
+        throw createError(400, 'Exercise name is required.')
       }
 
       const exercise = await this.#service.insert({
@@ -68,14 +66,10 @@ export class ExerciseController {
 
       res.status(201).json(exercise as IExercise)
     } catch (error: any) {
-      const err = createError(error.name === 'ValidationError'
-        ? 400 // bad format
-        : 500 // something went really wrong
-      )
-      err.cause = error
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
 
-      next(err)
-
+      next(error)
     }
   }
 
@@ -88,7 +82,6 @@ export class ExerciseController {
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const exercises = await this.#service.get()
-      console.log('123')
       res.json(exercises as IExercise[])
     } catch (error) {
       next(error)
@@ -132,13 +125,10 @@ export class ExerciseController {
 
       res.json({ exercise: updatedExercise })
     } catch (error: any) {
-      const err = createError(error.name === 'ValidationError'
-        ? 400 // bad format
-        : 500 // something went really wrong
-      )
-      err.cause = error
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
 
-      next(err)
+      next(error)
     }
   }
 
@@ -150,7 +140,7 @@ export class ExerciseController {
       await this.#service.delete(req.params.id)
       res
         .status(204)
-        .send('Exercise deleted')
+        .send('Exercise successfully deleted')
     } catch (error) {
       next(error)
     }
