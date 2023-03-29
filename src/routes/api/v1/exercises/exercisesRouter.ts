@@ -10,19 +10,19 @@ const controller = container.resolve('ExercisesController') as ExerciseControlle
 
 router.param('id', (req: Request, res: Response, next: NextFunction, id: string) => controller.loadExercise(req, res, next, id))
 
-// GET /api/v1/exercises
-router.get('/', (req: Request, res: Response, next: NextFunction) => controller.get(req, res, next))
-router.get('/:id', (req: Request, res: Response, next: NextFunction) => controller.getAll(req, res, next))
+// GET routes for /api/v1/exercises
+router.get('/', (req: Request, res: Response, next: NextFunction) => controller.getAll(req, res, next))
+router.get('/:id', (req: Request, res: Response, next: NextFunction) => controller.get(req, res, next))
 
-// POST /api/v1/exercises
+// POST routes for /api/v1/exercises
 router.post('/add', (req: Request, res: Response, next: NextFunction) => controller.add(req, res, next))
 
-// PATCH /api/v1/exercises/:id
+// PATCH routes for /api/v1/exercises
 router.patch('/:id', (req: Request, res: Response, next: NextFunction) => controller.partiallyUpdate(req, res, next))
 
-// PUT /api/v1/exercises/:id
+// PUT routes for /api/v1/exercises
 router.put('/:id', (req: Request, res: Response, next: NextFunction) => controller.update(req, res, next))
 
-// DELETE /api/v1/exercises/:id
+// DELETE /routes for /api/v1/exercises
 router.delete('/:id', (req: Request, res: Response, next: NextFunction) => controller.delete(req, res, next))
 

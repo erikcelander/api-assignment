@@ -32,8 +32,7 @@ export class ExerciseController {
 
       // If no exercise found send a 404 (Not Found).
       if (!exercise) {
-        next(createError(404, 'The requested resource was not found.'))
-        return
+        throw new Error('Exercise not found')
       }
 
       // Provide the exercise to req.
@@ -41,7 +40,9 @@ export class ExerciseController {
 
       // Next middleware.
       next()
-    } catch (error) {
+    } catch (error: any) {
+      error.status = 404
+      error.message = 'The requested resource was not found.'
       next(error)
     }
   }
@@ -66,8 +67,15 @@ export class ExerciseController {
 
 
       res.status(201).json(exercise as IExercise)
-    } catch (err) {
+    } catch (error: any) {
+      const err = createError(error.name === 'ValidationError'
+        ? 400 // bad format
+        : 500 // something went really wrong
+      )
+      err.cause = error
+
       next(err)
+
     }
   }
 
@@ -80,11 +88,14 @@ export class ExerciseController {
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const exercises = await this.#service.get()
+      console.log('123')
       res.json(exercises as IExercise[])
     } catch (error) {
       next(error)
     }
   }
+
+
   async partiallyUpdate(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, description } = req.body
@@ -103,7 +114,7 @@ export class ExerciseController {
 
       const updatedExercise = await this.#service.update(req.exercise.id, partialExercise)
 
-      res.json({ exercise: updatedExercise })
+      res.json(updatedExercise)
     } catch (err) {
       next(err)
     }
@@ -139,7 +150,7 @@ export class ExerciseController {
       await this.#service.delete(req.params.id)
       res
         .status(204)
-        .end()
+        .send('Exercise deleted')
     } catch (error) {
       next(error)
     }

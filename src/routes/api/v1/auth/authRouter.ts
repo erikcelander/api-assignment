@@ -6,10 +6,6 @@ export const router = express.Router()
 
 const controller = container.resolve('UsersController') as UsersController
 
-router.post('/register', (req: Request, res: Response, next: NextFunction) => {
-  controller.register(req, res, next)
-})
-
-router.post('/login', (req: Request, res: Response, next: NextFunction) => {
-  controller.login(req, res, next)
-})
+// POST routes for /api/v1/auth
+router.post('/register', (req: Request, res: Response, next: NextFunction) => controller.register(req, res, next))
+router.post('/login', (req: Request, res: Response, next: NextFunction) => controller.login(req, res, next))
