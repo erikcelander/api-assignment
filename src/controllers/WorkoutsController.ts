@@ -10,8 +10,8 @@ import { WorkoutsService } from '../services/WorkoutsService'
 import { Document } from 'mongoose'
 import { IWorkout } from '../models/workout'
 import createError from 'http-errors'
-import { AuthenticatedRequest } from '../middleware/authJWT'
-import { Exercise, IExercise } from '../models/exercise'
+import { AuthenticatedRequest } from './UsersController'
+import { IExercise } from '../models/exercise'
 import { ExercisesService } from '../services/ExercisesService'
 
 interface WorkoutRequest extends Request {
@@ -34,6 +34,7 @@ export class WorkoutController {
 
   async loadWorkout(req: WorkoutRequest, res: Response, next: NextFunction, id: string) {
     try {
+
       const workout = await this.#workoutService.getById(id)
 
       if (!workout) {

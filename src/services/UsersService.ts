@@ -29,19 +29,7 @@ export class UsersService extends MongooseServiceBase<IUser> {
     return (this._repository as UserRepository).getByEmail(email)
   }
 
-  async authenticate(email: string, password: string): Promise<string> {
-    const user = await (this._repository as UserRepository).authenticate(email, password)
-
-    const payload = {
-      email: user?.email,
-      id: user?._id,
-    }
-
-    const accessToken = jwt.sign(payload, Buffer.from(process.env.ACCESS_TOKEN_PRIVATE!, 'base64'), {
-      algorithm: 'RS256',
-      expiresIn: process.env.ACCESS_TOKEN_LIFE!,
-    })
-
-    return accessToken
+  async authenticate(email: string, password: string): Promise<IUser | null> {
+    return (this._repository as UserRepository).authenticate(email, password)   
   }
 }

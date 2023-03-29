@@ -1,9 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express'
-import { Workout } from '../../../../models/workout'
-
 import { WorkoutController } from '../../../../controllers/WorkoutsController'
 import { container } from '../../../../config/bootstrap'
-import { AuthenticatedRequest } from '../../../../middleware/authJWT'
+
 
 export const router = express.Router()
 

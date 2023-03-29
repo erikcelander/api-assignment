@@ -1,7 +1,7 @@
 import mongoose, { Request, Response, NextFunction } from 'express'
 import { ExercisesService } from '../services/ExercisesService'
 import { IExercise, Exercise } from '../models/exercise'
-import { AuthenticatedRequest } from '../middleware/authJWT'
+import { AuthenticatedRequest } from './UsersController'
 import createError from 'http-errors'
 import { Document } from 'mongoose'
 
@@ -75,7 +75,11 @@ export class ExerciseController {
 
 
   async get(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
-    res.json(req.exercise as IExercise)
+    try {
+      res.json(req.exercise as IExercise)
+    } catch (error: any) {
+      next(error)
+    }
   }
 
 
