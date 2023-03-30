@@ -19,16 +19,6 @@ export class UsersService extends MongooseServiceBase<IUser> {
     super(repository)
   }
 
-  /**
-   * Gets a user by email.
-   *
-   * @param {string} email - The email of the user to get.
-   * @returns {Promise<IUser|null>} Promise resolved with the found user or null if not found.
-   */
-  async getByEmail(email: string): Promise<IUser | null> {
-    return (this._repository as UserRepository).getByEmail(email)
-  }
-
   async authenticate(email: string, password: string): Promise<IUser | null> {
     return (this._repository as UserRepository).authenticate(email, password)   
   }

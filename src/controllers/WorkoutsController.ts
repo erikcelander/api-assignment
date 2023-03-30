@@ -15,7 +15,7 @@ import { IExercise } from '../models/exercise'
 import { ExercisesService } from '../services/ExercisesService'
 
 interface WorkoutRequest extends Request {
-  workout?: Document
+  workout?: IWorkout
 }
 
 /**
@@ -37,8 +37,8 @@ export class WorkoutController {
 
       const workout = await this.#workoutService.getById(id)
 
-      if (!workout) {
-        throw createError(404, 'The requested resource was not found.')
+      if (!workout || workout.owner !== (req as AuthenticatedRequest).user.id) {
+        throw createError(404, 'The requested resource was either not found or you have no permission to access it.')
       }
 
       req.workout = workout
@@ -56,7 +56,7 @@ export class WorkoutController {
       const { user: { id } } = req as AuthenticatedRequest
 
       if (!name) {
-        name = name ? name.trim() : `Workout ${await this.#workoutService.getAmountOfWorkouts(id) + 1}`
+        name = name ? name.trim() : `Workout ${(await this.#workoutService.get({ owner: (req as AuthenticatedRequest).user.id })).length + 1}`
       }
 
       const workoutExercises = []
@@ -64,7 +64,7 @@ export class WorkoutController {
       if (exercises && exercises.length > 0) {
         for (let i = 0; i < exercises.length; i++) {
           const exercise = exercises[i]
-          const name = exercise.name ? exercise.name.trim() : `Exercise ${i + 1}`
+          const name = exercise.name ? exercise.name.trim() : `Exercise ${((await this.#exerciseService.get({ owner: (req as AuthenticatedRequest).user.id })).length + 1)}`
 
 
           const createdExercise = await this.#exerciseService.insert({
@@ -75,22 +75,22 @@ export class WorkoutController {
 
           workoutExercises.push({
             name: name,
-            id: createdExercise.id,
             reps: exercise.reps,
             sets: exercise.sets,
-            weight: exercise.weight
+            weight: exercise.weight,
+            id: createdExercise.id
           })
         }
       }
 
       const workout = await this.#workoutService.insert({
-        name: name.trim(),
+        name: name,
         owner: id,
         exercises: workoutExercises
       } as IWorkout)
 
 
-      res.json(workout)
+      res.status(201).json(workout)
     } catch (error: any) {
       console.log(error)
       error.status = error.name === 'ValidationError' ? 400 : 500
@@ -106,8 +106,8 @@ export class WorkoutController {
 
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const workouts = await this.#workoutService.get()
-      workouts.length === 0 ? res.json({ message: 'No workouts found' }) : res.json(workouts as IWorkout[])
+      const workouts = await this.#workoutService.get({ owner: (req as AuthenticatedRequest).user.id })
+      workouts.length === 0 ? res.json({ message: 'No workouts found' }) : res.json({ workouts: workouts as IWorkout[] })
     } catch (error) {
       next(error)
     }
@@ -115,7 +115,8 @@ export class WorkoutController {
 
   async partiallyUpdate(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { name } = req.body
+      const { name, exercises } = req.body
+
 
       if (!req.workout) {
         throw createError(404, 'Workout not found')
@@ -127,31 +128,86 @@ export class WorkoutController {
 
       const partialWorkout: Partial<IWorkout> = {}
       if (name) partialWorkout.name = name.trim()
+      if (exercises) partialWorkout.exercises = exercises
+
 
       const updatedWorkout = await this.#workoutService.update(req.workout.id, partialWorkout)
 
       res.json({ workout: updatedWorkout })
-    } catch (err) {
-      next(err)
-    }
-  }
-
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const { name } = req.body
-
-      const updatedWorkout = await this.#workoutService.update(req.params.id, {
-        name: name.trim(),
-      } as IWorkout)
-
-      res.json({ workout: updatedWorkout })
     } catch (error: any) {
-      error.status = error.name === 'ValidationError' ? 400 : 500
-      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+      console.log(error)
+      error.status = error.name === "ValidationError" ? 400 : 500
+      error.message = error.name === "ValidationError" ? "Bad request" : "Something went wrong"
 
       next(error)
     }
   }
+
+  // fixa så att put och patch funkar klockrent och att det inte går att skicka in tomma värden
+  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { name, exercises } = req.body
+      const { workout } = req as WorkoutRequest
+      const { user } = req as AuthenticatedRequest
+      const updateData: Partial<IWorkout> = {}
+
+      if (name) updateData.name = name.trim()
+
+      if (exercises) {
+        const exerciseData: { name: string; id: any; reps: any; sets: any; weight: any }[] = []
+
+        await Promise.all(exercises.map(async (exercise: any) => {
+          if (
+            typeof exercise.reps === 'number' && exercise.reps > 0 &&
+            typeof exercise.sets === 'number' && exercise.sets > 0 &&
+            typeof exercise.weight === 'number' && exercise.weight > 0
+          ) {
+            let existingExercise = await this.#exerciseService.getOne({ owner: user.id, name: exercise.name.trim() })
+
+            if (existingExercise) {
+              // An exercise with the same name exists for the user, use that exercise
+              exerciseData.push({
+                name: existingExercise.name,
+                id: existingExercise.id,
+                reps: exercise.reps,
+                sets: exercise.sets,
+                weight: exercise.weight
+              })
+
+            } else {
+              // No exercise with the same name exists for the user, create a new exercise
+              const createdExercise = await this.#exerciseService.insert({
+                name: exercise.name.trim(),
+                description: exercise.description,
+                owner: user.id
+              } as IExercise)
+
+              exerciseData.push({
+                name: createdExercise.name,
+                id: createdExercise.id,
+                reps: exercise.reps,
+                sets: exercise.sets,
+                weight: exercise.weight
+              })
+            }
+          }
+        }))
+
+        updateData.exercises = exerciseData
+      }
+
+      const updatedWorkout = await this.#workoutService.update(req.params.id, updateData)
+      res.json({ workout: updatedWorkout })
+
+    } catch (error: any) {
+      console.log(error)
+      error.status = error.name === "ValidationError" ? 400 : 500
+      error.message = error.name === "ValidationError" ? "Bad request" : "Something went wrong"
+
+      next(error)
+    }
+  }
+
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

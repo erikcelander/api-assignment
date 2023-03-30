@@ -16,6 +16,10 @@ export class MongooseServiceBase<T extends Document<any, any, any>> {
     return this._repository.getById(id, projection, options)
   }
 
+  async getOne(conditions: any, projection?: any, options?: any): Promise<T | null> {
+    return this._repository.getOne(conditions, projection, options)
+  }
+
   async insert(data: T): Promise<T> {
     return this._repository.insert(data)
   }

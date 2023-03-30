@@ -31,8 +31,8 @@ export class ExerciseController {
       const exercise = await this.#service.getById(id)
 
       // If no exercise found send a 404 (Not Found).
-      if (!exercise) {
-        throw createError(404, 'The requested resource was not found.')
+      if (!exercise || exercise.owner !== (req as AuthenticatedRequest).user.id) {
+        throw createError(404, 'The requested resource was either not found or you have no permission to access it.')
       }
 
       // Provide the exercise to req.
@@ -85,7 +85,7 @@ export class ExerciseController {
 
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const exercises = await this.#service.get()
+      const exercises = await this.#service.get({ owner: (req as AuthenticatedRequest).user.id })
       res.json(exercises as IExercise[])
     } catch (error) {
       next(error)

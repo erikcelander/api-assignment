@@ -53,6 +53,9 @@ const schema = new mongoose.Schema(
     }
   })
 
+schema.index({ name: 1, owner: 1 }, { unique: true })
+
+
 schema.virtual('id').get(function () {
   return this._id.toHexString()
 })

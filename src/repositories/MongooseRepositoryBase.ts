@@ -76,7 +76,7 @@ export class MongooseRepositoryBase<T extends Document> {
     return this.#model
       .findOneAndReplace({ _id: id }, replaceData, {
         ...options,
-        returnDocument: 'after',
+        new: true,
         runValidators: true
       })
       .exec()

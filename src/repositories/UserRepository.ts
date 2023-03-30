@@ -17,13 +17,6 @@ export class UserRepository extends MongooseRepositoryBase<IUser> {
     super(model)
   }
 
-  /**
-   * Gets a user by email.
-   */
-  async getByEmail(email: string): Promise<IUser | null> {
-    return this.model.findOne({ email }).exec()
-  }
-
   async authenticate(email: string, password: string): Promise<IUser | null> {
     return User.authenticate(email, password)
   }
