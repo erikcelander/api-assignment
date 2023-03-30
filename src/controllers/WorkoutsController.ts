@@ -7,7 +7,6 @@
 
 import { Request, Response, NextFunction } from 'express'
 import { WorkoutsService } from '../services/WorkoutsService'
-import { Document } from 'mongoose'
 import { IWorkout } from '../models/workout'
 import createError from 'http-errors'
 import { AuthenticatedRequest } from './UsersController'
@@ -16,6 +15,14 @@ import { ExercisesService } from '../services/ExercisesService'
 
 interface WorkoutRequest extends Request {
   workout?: IWorkout
+}
+
+type ExerciseData = {
+  name: string
+  id: string
+  reps: number
+  sets: number
+  weight: number
 }
 
 /**
@@ -143,70 +150,103 @@ export class WorkoutController {
     }
   }
 
-  // fixa så att put och patch funkar klockrent och att det inte går att skicka in tomma värden
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+ 
+
+  async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, exercises } = req.body
-      const { workout } = req as WorkoutRequest
-      const { user } = req as AuthenticatedRequest
+      const { user } = req
       const updateData: Partial<IWorkout> = {}
 
       if (name) updateData.name = name.trim()
 
       if (exercises) {
-        const exerciseData: { name: string; id: any; reps: any; sets: any; weight: any }[] = []
-
-        await Promise.all(exercises.map(async (exercise: any) => {
-          if (
-            typeof exercise.reps === 'number' && exercise.reps > 0 &&
-            typeof exercise.sets === 'number' && exercise.sets > 0 &&
-            typeof exercise.weight === 'number' && exercise.weight > 0
-          ) {
-            let existingExercise = await this.#exerciseService.getOne({ owner: user.id, name: exercise.name.trim() })
-
-            if (existingExercise) {
-              // An exercise with the same name exists for the user, use that exercise
-              exerciseData.push({
-                name: existingExercise.name,
-                id: existingExercise.id,
-                reps: exercise.reps,
-                sets: exercise.sets,
-                weight: exercise.weight
-              })
-
-            } else {
-              // No exercise with the same name exists for the user, create a new exercise
-              const createdExercise = await this.#exerciseService.insert({
-                name: exercise.name.trim(),
-                description: exercise.description,
-                owner: user.id
-              } as IExercise)
-
-              exerciseData.push({
-                name: createdExercise.name,
-                id: createdExercise.id,
-                reps: exercise.reps,
-                sets: exercise.sets,
-                weight: exercise.weight
-              })
-            }
-          }
-        }))
-
-        updateData.exercises = exerciseData
+        const exerciseDataPromises = exercises.map(async (exercise: Partial<IExercise>) => await this.processExercise(user, exercise))
+        updateData.exercises = await Promise.all(exerciseDataPromises)
       }
 
       const updatedWorkout = await this.#workoutService.update(req.params.id, updateData)
       res.json({ workout: updatedWorkout })
-
     } catch (error: any) {
       console.log(error)
-      error.status = error.name === "ValidationError" ? 400 : 500
-      error.message = error.name === "ValidationError" ? "Bad request" : "Something went wrong"
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
 
       next(error)
     }
   }
+
+
+  // fixa så att put och patch funkar klockrent och att det inte går att skicka in tomma värden
+  // async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  //   try {
+  //     const { name, exercises } = req.body
+  //     const { user } = req
+  //     const updateData: Partial<IWorkout> = {}
+
+  //     if (name) updateData.name = name.trim()
+
+  //     if (exercises) {
+  //       const exerciseData: { name: string; id: any; reps: any; sets: any; weight: any }[] = []
+
+  //       await Promise.all(exercises.map(async (exercise: any) => {
+  //         if (!exercise.name) {
+  //           throw new Error('Invalid name')
+  //         }
+  //         if (!Number.isFinite(exercise.reps) || exercise.reps <= 0) {
+  //           throw new Error('Invalid reps')
+  //         }
+  //         if (!Number.isFinite(exercise.sets) || exercise.sets <= 0) {
+  //           throw new Error('Invalid sets')
+  //         }
+  //         if (!Number.isFinite(exercise.weight) || exercise.weight <= 0) {
+  //           throw new Error('Invalid weight')
+  //         } else {
+
+  //           let existingExercise = await this.#exerciseService.getOne({ owner: user.id, name: exercise.name.trim() })
+
+  //           if (existingExercise) {
+  //             // An exercise with the same name exists for the user, use that exercise
+  //             exerciseData.push({
+  //               name: existingExercise.name,
+  //               id: existingExercise.id,
+  //               reps: exercise.reps,
+  //               sets: exercise.sets,
+  //               weight: exercise.weight
+  //             })
+
+  //           } else {
+  //             // No exercise with the same name exists for the user, create a new exercise
+  //             const createdExercise = await this.#exerciseService.insert({
+  //               name: exercise.name.trim(),
+  //               description: exercise.description,
+  //               owner: user.id
+  //             } as IExercise)
+
+  //             exerciseData.push({
+  //               name: createdExercise.name,
+  //               id: createdExercise.id,
+  //               reps: exercise.reps,
+  //               sets: exercise.sets,
+  //               weight: exercise.weight
+  //             })
+  //           }
+  //         }
+  //       }))
+
+  //       updateData.exercises = exerciseData
+  //     }
+
+  //     const updatedWorkout = await this.#workoutService.update(req.params.id, updateData)
+  //     res.json({ workout: updatedWorkout })
+  //   } catch (error: any) {
+  //     console.log(error)
+  //     error.status = error.name === "ValidationError" ? 400 : 500
+  //     error.message = error.name === "ValidationError" ? "Bad request" : "Something went wrong"
+
+  //     next(error)
+  //   }
+  // }
 
 
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -217,6 +257,47 @@ export class WorkoutController {
         .send('Workout successfully deleted')
     } catch (error) {
       next(error)
+    }
+  }
+
+  async processExercise(user: any, exercise: any): Promise<ExerciseData> {
+    if (!exercise.name) {
+      throw new Error('Invalid name')
+    }
+    if (!Number.isFinite(exercise.reps) || exercise.reps <= 0) {
+      throw new Error('Invalid reps')
+    }
+    if (!Number.isFinite(exercise.sets) || exercise.sets <= 0) {
+      throw new Error('Invalid sets')
+    }
+    if (!Number.isFinite(exercise.weight) || exercise.weight <= 0) {
+      throw new Error('Invalid weight')
+    }
+
+    let existingExercise = await this.#exerciseService.getOne({ owner: user.id, name: exercise.name.trim() })
+
+    if (existingExercise) {
+      return {
+        name: existingExercise.name,
+        id: existingExercise.id,
+        reps: exercise.reps,
+        sets: exercise.sets,
+        weight: exercise.weight,
+      }
+    } else {
+      const createdExercise = await this.#exerciseService.insert({
+        name: exercise.name.trim(),
+        description: exercise.description,
+        owner: user.id,
+      } as IExercise)
+
+      return {
+        name: createdExercise.name,
+        id: createdExercise.id,
+        reps: exercise.reps,
+        sets: exercise.sets,
+        weight: exercise.weight,
+      }
     }
   }
 }
