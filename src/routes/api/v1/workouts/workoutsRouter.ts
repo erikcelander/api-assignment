@@ -2,11 +2,11 @@ import express, { Request, Response, NextFunction } from 'express'
 import { WorkoutController } from '../../../../controllers/WorkoutsController'
 import { container } from '../../../../config/bootstrap'
 
-
 export const router = express.Router()
 
 const controller = container.resolve('WorkoutsController') as WorkoutController
 
+// Load workout by ID
 router.param('id', (req: Request, res: Response, next: NextFunction, id: string) => controller.loadWorkout(req, res, next, id))
 
 // GET routes for /api/v1/workouts
@@ -15,7 +15,7 @@ router.get('/:id', (req: Request, res: Response, next: NextFunction) => controll
 
 // POST routes for /api/v1/workouts
 router.post('/', (req: Request, res: Response, next: NextFunction) => controller.create(req, res, next))
-//router.post('/:id', (req: Request, res: Response, next: NextFunction) => controller.addExercise(req, res, next))
+router.post('/:id', (req: Request, res: Response, next: NextFunction) => controller.addExerciseToWorkout(req, res, next))
 
 // PATCH routes for /api/v1/workouts
 router.patch('/:id', (req: Request, res: Response, next: NextFunction) => controller.partiallyUpdate(req, res, next))
@@ -25,3 +25,4 @@ router.put('/:id', (req: Request, res: Response, next: NextFunction) => controll
 
 // DELETE routes for /api/v1/workouts
 router.delete('/:id', (req: Request, res: Response, next: NextFunction) => controller.delete(req, res, next))
+

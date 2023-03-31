@@ -347,7 +347,7 @@ export class WorkoutController {
   }
 
 
-  async addExercise(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
+  async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       let workout = req.workout as IWorkout
       const newExercise = req.body
