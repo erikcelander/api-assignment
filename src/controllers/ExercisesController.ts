@@ -27,24 +27,18 @@ export class ExerciseController {
    */
   async loadExercise(req: ExerciseRequest, res: Response, next: NextFunction, id: string) {
     try {
-      // Get the exercise.
       const exercise = await this.#service.getById(id)
-
-      // If no exercise found send a 404 (Not Found).
+  
       if (!exercise || exercise.owner !== (req as AuthenticatedRequest).user.id) {
         throw createError(404, 'The requested resource was either not found or you have no permission to access it.')
       }
-
-      // Provide the exercise to req.
+  
       req.exercise = exercise
-
-      // Next middleware.
       next()
     } catch (error: any) {
       next(error)
     }
   }
-
 
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -61,9 +55,6 @@ export class ExerciseController {
         owner: id as string
       } as IExercise)
 
-
-
-
       res.status(201).json(exercise as IExercise)
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
@@ -76,18 +67,23 @@ export class ExerciseController {
 
   async get(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      res.json(req.exercise as IExercise)
+      res.status(200).json(req.exercise as IExercise)
     } catch (error: any) {
       next(error)
     }
   }
-
+  
 
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const allExercises = await this.#service.get({ owner: (req as AuthenticatedRequest).user.id })
       const exercises = allExercises.map(({ name, id }) => ({ name, id }))
-      res.json(exercises)
+      
+      if (exercises.length === 0) {
+        res.status(204).json({ message: 'No exercises found' })
+      } else {
+        res.status(200).json(exercises)
+      }
     } catch (error) {
       next(error)
     }
@@ -118,21 +114,24 @@ export class ExerciseController {
     }
   }
 
-
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, description } = req.body
-
+  
+      if (!name) {
+        throw createError(400, 'Exercise name is required for updating.')
+      }
+  
       const updatedExercise = await this.#service.update(req.params.id, {
         name: name.trim(),
         description: description?.trim(),
       } as IExercise)
-
-      res.json({ exercise: updatedExercise })
+  
+      res.status(200).json({ exercise: updatedExercise })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
-
+  
       next(error)
     }
   }
@@ -143,10 +142,10 @@ export class ExerciseController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await this.#service.delete(req.params.id)
-      res
-        .status(204)
-        .send('Exercise successfully deleted')
-    } catch (error) {
+      res.status(204).send('Exercise successfully deleted')
+    } catch (error: any) {
+      error.status = 500
+      error.message = 'Something went wrong'
       next(error)
     }
   }
