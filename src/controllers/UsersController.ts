@@ -35,7 +35,6 @@ export class UsersController {
    * @param {Response} res - Express response object.
    * @param {NextFunction} next - Express next middleware function.
    */
-
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { email, password } = req.body

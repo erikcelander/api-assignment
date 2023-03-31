@@ -47,6 +47,9 @@ export class WorkoutsController {
   }
 
 
+  /**
+   * Middleware that populates req.workout with a workout.
+   */
   async loadWorkout(req: Request, res: Response, next: NextFunction, id: string) {
     try {
 
@@ -64,7 +67,9 @@ export class WorkoutsController {
     }
   }
 
-
+  /**
+   * Creates a new workout.
+   */
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       let { name, exercises } = req.body
@@ -137,6 +142,9 @@ export class WorkoutsController {
     }
   }
 
+  /**
+   * Partially updates a workout.
+   */
   async partiallyUpdate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, exercises } = req.body
@@ -203,6 +211,9 @@ export class WorkoutsController {
     }
   }
 
+  /**
+   * Updates an exercise for a workout.
+   */
   async patchExerciseForWorkout(workout: IWorkout, user: UserData, exerciseData: Partial<ExerciseData>, exerciseNumber: number): Promise<ExerciseData> {
 
     const { id, name, reps, sets, weight, description } = exerciseData
@@ -252,8 +263,9 @@ export class WorkoutsController {
     return exercise
   }
 
-
-
+  /**
+   * Updates a workout
+   */
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       let { name, exercises } = req.body
@@ -277,7 +289,7 @@ export class WorkoutsController {
       const updatedWorkout = await this.#workoutService.update(id, workoutWithoutId)
 
       const links = generateResourceLinks('workout', id, 'single')
-  
+
       res.status(200).json({ workout: updatedWorkout, _links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
@@ -287,6 +299,9 @@ export class WorkoutsController {
     }
   }
 
+  /**
+   * Processes an exercise for a workout
+   */
   async processExerciseForWorkout(workout: IWorkout, user: UserData, exerciseData: ExerciseData): Promise<ExerciseData> {
 
     let { id, name, reps, sets, weight, description } = exerciseData
@@ -346,6 +361,20 @@ export class WorkoutsController {
     return exercise
   }
 
+  /**
+   * Deletes a workout.
+   */
+  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await this.#workoutService.delete(req.params.id)
+      res
+        .status(204)
+        .send('Workout successfully deleted')
+    } catch (error) {
+      next(error)
+    }
+  }
+
 
   /* isNumberValid(value: number | undefined): boolean {
      return value !== undefined && Number.isFinite(value) && value > 0
@@ -364,6 +393,8 @@ export class WorkoutsController {
    }*/
 
 
+   /**
+    * Adds an exercise to a workout. If the exercise does not exist, it will be created.
   async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       let workout = req.workout as IWorkout
@@ -399,16 +430,5 @@ export class WorkoutsController {
 
       next(error)
     }
-  }
-
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      await this.#workoutService.delete(req.params.id)
-      res
-        .status(204)
-        .send('Workout successfully deleted')
-    } catch (error) {
-      next(error)
-    }
-  }
+  }*/
 }

@@ -11,6 +11,9 @@ export class WebhooksController {
     this.#service = service
   }
 
+  /**
+   * Creates a new webhook.
+   */
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { url } = req.body as { url: string }
@@ -32,6 +35,9 @@ export class WebhooksController {
     }
   }
 
+  /**
+   * Fires a webhook.
+   */
   async fire(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id, payload } = req.body
@@ -60,6 +66,9 @@ export class WebhooksController {
     }
   }
 
+  /**
+   * Deletes a webhook.
+   */
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params

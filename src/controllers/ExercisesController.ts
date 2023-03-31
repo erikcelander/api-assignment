@@ -41,6 +41,9 @@ export class ExercisesController {
     }
   }
 
+  /**
+   * Creates a new exercise.
+   */
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, description } = req.body
@@ -67,6 +70,9 @@ export class ExercisesController {
   }
 
 
+  /**
+   * Gets the specified exercise.
+   */
   async get(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const links = generateResourceLinks('exercise', req.params.id, 'single')
@@ -79,6 +85,9 @@ export class ExercisesController {
   }
 
 
+  /**
+   * Get all exercises for the current user.
+   */
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const allExercises = await this.#service.get({ owner: (req as AuthenticatedRequest).user.id })
@@ -105,6 +114,9 @@ export class ExercisesController {
   }
 
 
+  /**
+   * Updates the specified exercise with the provided properties.
+   */
   async partiallyUpdate(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, description } = req.body
