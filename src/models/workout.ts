@@ -69,8 +69,11 @@ const convertOptions = {
    * @param {object} doc - The mongoose document which is being converted.
    * @param {object} ret - The plain object representation which has been converted.
    */
-  transform: (_doc: any, ret: { _id: any }) => {
+  transform: (doc: any, ret: any) => {
     delete ret._id
+    delete ret.updatedAt
+    delete ret.createdAt
+    delete ret.owner
   }
 }
 

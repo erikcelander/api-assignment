@@ -15,6 +15,7 @@ router.get('/:id', (req: Request, res: Response, next: NextFunction) => controll
 
 // POST routes for /api/v1/workouts
 router.post('/', (req: Request, res: Response, next: NextFunction) => controller.create(req, res, next))
+//router.post('/:id', (req: Request, res: Response, next: NextFunction) => controller.addExercise(req, res, next))
 
 // PATCH routes for /api/v1/workouts
 router.patch('/:id', (req: Request, res: Response, next: NextFunction) => controller.partiallyUpdate(req, res, next))

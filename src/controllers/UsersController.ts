@@ -94,7 +94,7 @@ export class UsersController {
   async authenticateJWT(req: Request, res: Response, next: NextFunction) {
     try {
       const [authenticationScheme, token] = (req.headers.authorization?.split(' ') ?? []) as [string, string]
-      console.log('authjwt')
+      
       if (authenticationScheme !== 'Bearer') {
         throw new Error('Invalid authentication scheme. Authorization header must start with "Bearer"')
       }

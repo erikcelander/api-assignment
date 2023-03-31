@@ -39,12 +39,15 @@ const convertOptions = {
    * @param {object} _doc - The mongoose document which is being converted.
    * @param {object} ret - The plain object representation which has been converted.
    */
-  transform: (_doc: any, ret: { _id: any }) => {
+  transform: (_doc: any, ret: any) => {
     delete ret._id
+    delete ret.updatedAt
+    delete ret.createdAt
+    delete ret.owner
   }
 }
 
-schema.set('timestamps', true)
+schema.set('timestamps', false)
 schema.set('toObject', convertOptions)
 schema.set('toJSON', convertOptions)
 

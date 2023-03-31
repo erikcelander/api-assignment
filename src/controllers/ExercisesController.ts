@@ -85,8 +85,9 @@ export class ExerciseController {
 
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const exercises = await this.#service.get({ owner: (req as AuthenticatedRequest).user.id })
-      res.json(exercises as IExercise[])
+      const allExercises = await this.#service.get({ owner: (req as AuthenticatedRequest).user.id })
+      const exercises = allExercises.map(({ name, id }) => ({ name, id }))
+      res.json(exercises)
     } catch (error) {
       next(error)
     }
