@@ -7,7 +7,7 @@
 
 import jwt from 'jsonwebtoken'
 import { Request, Response, NextFunction } from 'express'
-import { User, IUser } from '../models/user'
+import {  IUser } from '../models/user'
 import { UsersService } from '../services/UsersService'
 
 export interface AuthenticatedRequest extends Request {
