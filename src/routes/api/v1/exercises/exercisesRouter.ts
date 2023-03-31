@@ -1,10 +1,10 @@
 import express, { Request, Response, NextFunction } from 'express'
-import { ExerciseController } from '../../../../controllers/ExercisesController'
+import { ExercisesController } from '../../../../controllers/ExercisesController'
 import { container } from '../../../../config/bootstrap'
 
 export const router = express.Router()
 
-const controller = container.resolve('ExercisesController') as ExerciseController
+const controller = container.resolve('ExercisesController') as ExercisesController
 
 // Load exercise by ID
 router.param('id', (req: Request, res: Response, next: NextFunction, id: string) => controller.loadExercise(req, res, next, id))

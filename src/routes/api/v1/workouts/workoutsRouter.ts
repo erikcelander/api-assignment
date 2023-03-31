@@ -1,28 +1,32 @@
 import express, { Request, Response, NextFunction } from 'express'
-import { WorkoutController } from '../../../../controllers/WorkoutsController'
+import { WorkoutsController } from '../../../../controllers/WorkoutsController'
+import { WebhooksController } from '../../../../controllers/WebhooksController'
 import { container } from '../../../../config/bootstrap'
 
 export const router = express.Router()
 
-const controller = container.resolve('WorkoutsController') as WorkoutController
+const workoutsController = container.resolve('WorkoutsController') as WorkoutsController
+const webhooksController = container.resolve('WebhooksController') as WebhooksController
+
 
 // Load workout by ID
-router.param('id', (req: Request, res: Response, next: NextFunction, id: string) => controller.loadWorkout(req, res, next, id))
+router.param('id', (req: Request, res: Response, next: NextFunction, id: string) => workoutsController.loadWorkout(req, res, next, id))
 
 // GET routes for /api/v1/workouts
-router.get('/', (req: Request, res: Response, next: NextFunction) => controller.getAll(req, res, next))
-router.get('/:id', (req: Request, res: Response, next: NextFunction) => controller.get(req, res, next))
+router.get('/', (req: Request, res: Response, next: NextFunction) => workoutsController.getAll(req, res, next))
+router.get('/:id', (req: Request, res: Response, next: NextFunction) => workoutsController.get(req, res, next))
 
 // POST routes for /api/v1/workouts
-router.post('/', (req: Request, res: Response, next: NextFunction) => controller.create(req, res, next))
-router.post('/:id', (req: Request, res: Response, next: NextFunction) => controller.addExerciseToWorkout(req, res, next))
+router.post('/', (req: Request, res: Response, next: NextFunction) => workoutsController.create(req, res, next), (req: Request, res: Response, next: NextFunction) => webhooksController.fire(req, res, next))
+
+router.post('/:id', (req: Request, res: Response, next: NextFunction) => workoutsController.addExerciseToWorkout(req, res, next))
 
 // PATCH routes for /api/v1/workouts
-router.patch('/:id', (req: Request, res: Response, next: NextFunction) => controller.partiallyUpdate(req, res, next))
+router.patch('/:id', (req: Request, res: Response, next: NextFunction) => workoutsController.partiallyUpdate(req, res, next))
 
 // PUT routes for /api/v1/workouts
-router.put('/:id', (req: Request, res: Response, next: NextFunction) => controller.update(req, res, next))
+router.put('/:id', (req: Request, res: Response, next: NextFunction) => workoutsController.update(req, res, next))
 
 // DELETE routes for /api/v1/workouts
-router.delete('/:id', (req: Request, res: Response, next: NextFunction) => controller.delete(req, res, next))
+router.delete('/:id', (req: Request, res: Response, next: NextFunction) => workoutsController.delete(req, res, next))
 

@@ -14,7 +14,7 @@ interface ExerciseRequest extends Request {
 /**
  * Encapsulates a controller.
  */
-export class ExerciseController {
+export class ExercisesController {
 
   #service: ExercisesService
 

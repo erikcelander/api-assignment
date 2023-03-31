@@ -35,7 +35,7 @@ type UserData = {
 /**
  * Encapsulates a controller.
  */
-export class WorkoutController {
+export class WorkoutsController {
 
   #workoutService: WorkoutsService
   #exerciseService: ExercisesService
@@ -330,7 +330,7 @@ export class WorkoutController {
   }
 
 
-  isNumberValid(value: number | undefined): boolean {
+ /* isNumberValid(value: number | undefined): boolean {
     return value !== undefined && Number.isFinite(value) && value > 0
   }
 
@@ -344,7 +344,7 @@ export class WorkoutController {
     if (!this.isNumberValid(exerciseData.weight)) {
       throw new Error(`Invalid weight for exercise ${exerciseNumber}`)
     }
-  }
+  }*/
 
 
   async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
