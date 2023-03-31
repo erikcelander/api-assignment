@@ -12,6 +12,7 @@ import createError from 'http-errors'
 import { AuthenticatedRequest } from './UsersController'
 import { IExercise } from '../models/exercise'
 import { ExercisesService } from '../services/ExercisesService'
+import { generateResourceLinks } from '../config/hateoas'
 
 interface WorkoutRequest extends Request {
   workout?: IWorkout
@@ -102,8 +103,12 @@ export class WorkoutsController {
         exercises: workoutExercises
       } as IWorkout)
 
+      const links = generateResourceLinks('workout', workout.id, 'single')
+      res.status(201).json({
+        ...workout.toObject(),
+        _links: links
+      })
 
-      res.status(201).json(workout)
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -113,13 +118,18 @@ export class WorkoutsController {
   }
 
   async get(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
-    res.status(200).json(req.workout as IWorkout)
+    const links = generateResourceLinks('workout', req.workout?.id as string, 'single')
+    res.status(200).json({
+      ...req.workout?.toObject(),
+      _links: links
+    })
   }
 
   async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const workouts = await this.#workoutService.get({ owner: (req as AuthenticatedRequest).user.id })
-      workouts.length === 0 ? res.status(200).json({ message: 'No workouts found' }) : res.status(200).json({ workouts: workouts as IWorkout[] })
+      const links = generateResourceLinks('workout', '', 'all')
+      workouts.length === 0 ? res.status(200).json({ message: 'No workouts found', _links: links }) : res.status(200).json({ workouts: workouts as IWorkout[], _links: links })
     } catch (error: any) {
       error.status = 500
       error.message = 'Something went wrong'
@@ -176,7 +186,12 @@ export class WorkoutsController {
       const updatedWorkout = await this.#workoutService.update(id, workoutWithoutId)
 
 
-      res.status(200).json(updatedWorkout)
+      if (!updatedWorkout) {
+        throw createError(404, `Could not find workout with id ${id}`)
+      }
+
+      const links = generateResourceLinks('workout', id, 'single')
+      res.status(200).json({ ...updatedWorkout.toObject(), _links: links })
 
     } catch (error: any) {
       if (!error.status) {
@@ -261,7 +276,9 @@ export class WorkoutsController {
 
       const updatedWorkout = await this.#workoutService.update(id, workoutWithoutId)
 
-      res.status(200).json({ workout: updatedWorkout })
+      const links = generateResourceLinks('workout', id, 'single')
+  
+      res.status(200).json({ workout: updatedWorkout, _links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -330,21 +347,21 @@ export class WorkoutsController {
   }
 
 
- /* isNumberValid(value: number | undefined): boolean {
-    return value !== undefined && Number.isFinite(value) && value > 0
-  }
-
-  validateExerciseData(exerciseData: ExerciseData, exerciseNumber: number): void {
-    if (!this.isNumberValid(exerciseData.reps)) {
-      throw new Error(`Invalid reps for exercise ${exerciseNumber}`)
-    }
-    if (!this.isNumberValid(exerciseData.sets)) {
-      throw new Error(`Invalid sets for exercise ${exerciseNumber}`)
-    }
-    if (!this.isNumberValid(exerciseData.weight)) {
-      throw new Error(`Invalid weight for exercise ${exerciseNumber}`)
-    }
-  }*/
+  /* isNumberValid(value: number | undefined): boolean {
+     return value !== undefined && Number.isFinite(value) && value > 0
+   }
+ 
+   validateExerciseData(exerciseData: ExerciseData, exerciseNumber: number): void {
+     if (!this.isNumberValid(exerciseData.reps)) {
+       throw new Error(`Invalid reps for exercise ${exerciseNumber}`)
+     }
+     if (!this.isNumberValid(exerciseData.sets)) {
+       throw new Error(`Invalid sets for exercise ${exerciseNumber}`)
+     }
+     if (!this.isNumberValid(exerciseData.weight)) {
+       throw new Error(`Invalid weight for exercise ${exerciseNumber}`)
+     }
+   }*/
 
 
   async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
@@ -373,7 +390,8 @@ export class WorkoutsController {
       })
 
       const updatedWorkout = await this.#workoutService.update(req.params.id, workout)
-      res.status(201).json({ updatedWorkout })
+      const links = generateResourceLinks('workout', req.params.id, 'single')
+      res.status(201).json({ workout: updatedWorkout, links })
 
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500

@@ -4,6 +4,7 @@ import { IExercise, Exercise } from '../models/exercise'
 import { AuthenticatedRequest } from './UsersController'
 import createError from 'http-errors'
 import { Document } from 'mongoose'
+import { generateResourceLinks } from '../config/hateoas'
 
 
 interface ExerciseRequest extends Request {
@@ -55,7 +56,8 @@ export class ExercisesController {
         owner: id as string
       } as IExercise)
 
-      res.status(201).json(exercise as IExercise)
+      const links = generateResourceLinks('exercise', exercise.id, 'single')
+      res.status(201).json({ ...exercise as IExercise, _links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -67,8 +69,11 @@ export class ExercisesController {
 
   async get(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      res.status(200).json(req.exercise as IExercise)
+      const links = generateResourceLinks('exercise', req.params.id, 'single')
+      res.status(200).json({ ...req.exercise, _links: links })
     } catch (error: any) {
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
       next(error)
     }
   }
@@ -79,12 +84,22 @@ export class ExercisesController {
       const allExercises = await this.#service.get({ owner: (req as AuthenticatedRequest).user.id })
       const exercises = allExercises.map(({ name, id }) => ({ name, id }))
 
+      const exerciseLinks = generateResourceLinks('exercise', '', 'create')
+      const workoutLinks = generateResourceLinks('workout', '', 'create')
+
+
+      console.log(exerciseLinks)
       if (exercises.length === 0) {
-        res.status(204).json({ message: 'No exercises found' })
+        res.status(204).json({
+          message: 'No exercises found',
+          _links: [...exerciseLinks, ...workoutLinks]
+        })
       } else {
-        res.status(200).json(exercises)
+        res.status(200).json({ exercises, _links: [...exerciseLinks, ...workoutLinks] })
       }
-    } catch (error) {
+    } catch (error: any) {
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
       next(error)
     }
   }
@@ -108,9 +123,12 @@ export class ExercisesController {
 
       const updatedExercise = await this.#service.update(req.exercise.id, partialExercise)
 
-      res.json(updatedExercise)
-    } catch (err) {
-      next(err)
+      const links = generateResourceLinks('exercise', req.params.id, 'single')
+      res.status(200).json({ exercise: updatedExercise, _links: links })
+    } catch (error: any) {
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+      next(error)
     }
   }
 
@@ -127,7 +145,8 @@ export class ExercisesController {
         description: description?.trim(),
       } as IExercise)
 
-      res.status(200).json({ exercise: updatedExercise })
+      const links = generateResourceLinks('exercise', req.params.id, 'single')
+      res.status(200).json({ exercise: updatedExercise, _links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'

@@ -49,7 +49,13 @@ export class UsersController {
         password,
       } as IUser)
 
-      res.status(201).json({ message: `User ${user.email} successfully created.` })
+
+      res.status(201).json({ 
+        message: `User ${user.email} successfully created.`,
+        _links: [
+          { rel: 'login', href: '/api/v1/auth/login', method: 'POST' },
+        ]
+     })
     } catch (error: any) {
       error.status = 400
       next(error)
@@ -80,7 +86,16 @@ export class UsersController {
         expiresIn: process.env.ACCESS_TOKEN_LIFE!,
       })
 
-      res.status(200).json({ access_token: accessToken })
+      res.status(200).json({ 
+        access_token: accessToken,
+        _links: [
+          { rel: 'getWorkouts', href: '/api/v1/workouts', method: 'GET' },
+          { rel: 'createWorkout', href: `/api/v1/workouts`, method: 'POST' },
+          { rel: 'getExercises', href: '/api/v1/exercises', method: 'GET' },
+          { rel: 'createExercise', href: '/api/v1/exercises', method: 'POST' },
+        ]
+       })
+
     } catch (error: any) {
       error.status = 401
       error.message = 'Invalid email or password.'
