@@ -145,12 +145,12 @@ export class WorkoutController {
 
       if (exercises) {
         for (const [index, exerciseData] of exercises.entries()) {
-          
+
           try {
-            
+
             const exerciseNumber: number = index + 1
             const updatedExercise = await this.patchExerciseForWorkout(workout as IWorkout, user, exerciseData, exerciseNumber)
-  
+
             if (updatedExercise) {
               const existingExerciseIndex = workout.exercises.findIndex((exercise) => exercise.id === updatedExercise.id)
               if (existingExerciseIndex !== -1) {
@@ -164,8 +164,8 @@ export class WorkoutController {
           } catch (error: any) {
             if (error.name === 'BadRequestError') {
               error.status = 400
-              error. message = `Exercise ${index + 1}: ${error.message}`
-            } 
+              error.message = `Exercise ${index + 1}: ${error.message}`
+            }
 
             throw error
           }
@@ -180,8 +180,8 @@ export class WorkoutController {
 
     } catch (error: any) {
       if (!error.status) {
-        error.status = error.name === 'ValidationError' ? 400 : 500;
-        error.message = error.name === 'ValidationError' ? 'Bad Request' : 'Something went wrong';
+        error.status = error.name === 'ValidationError' ? 400 : 500
+        error.message = error.name === 'ValidationError' ? 'Bad Request' : 'Something went wrong'
       }
 
       next(error)
@@ -355,14 +355,14 @@ export class WorkoutController {
       if (!newExercise || !newExercise.name || !newExercise.reps || !newExercise.sets || !newExercise.weight) {
         throw createError(400, 'Exercise data is required to add an exercise.')
       }
-  
+
       // Create the new exercise through the exercise service
       const createdExercise = await this.#exerciseService.insert({
         name: newExercise.name.trim(),
         description: newExercise.description?.trim(),
         owner: (req as AuthenticatedRequest).user.id,
       } as IExercise)
-  
+
       // Add the new exercise to the workout
       workout.exercises.push({
         id: createdExercise.id,
@@ -371,7 +371,7 @@ export class WorkoutController {
         sets: newExercise.sets,
         weight: newExercise.weight,
       })
-  
+
       const updatedWorkout = await this.#workoutService.update(req.params.id, workout)
       res.status(201).json({ updatedWorkout })
 

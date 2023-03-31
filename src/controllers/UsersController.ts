@@ -7,8 +7,9 @@
 
 import jwt from 'jsonwebtoken'
 import { Request, Response, NextFunction } from 'express'
-import {  IUser } from '../models/user'
+import { IUser } from '../models/user'
 import { UsersService } from '../services/UsersService'
+import createError from 'http-errors'
 
 export interface AuthenticatedRequest extends Request {
   user: {
@@ -37,9 +38,15 @@ export class UsersController {
 
   async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      const { email, password } = req.body
+
+      if (!email || !password) {
+        throw createError(400, 'Email and password are required for registration.')
+      }
+
       const user = await this.#service.insert({
-        email: req.body.email,
-        password: req.body.password
+        email,
+        password,
       } as IUser)
 
       res.status(201).json({ message: `User ${user.email} successfully created.` })
@@ -52,14 +59,16 @@ export class UsersController {
 
   /**
    * Logs in the user and returns an access token.
-   *
-   * @param {Request} req - Express request object.
-   * @param {Response} res - Express response object.
-   * @param {NextFunction} next - Express next middleware function.
    */
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = await this.#service.authenticate(req.body.email, req.body.password)
+      const { email, password } = req.body
+
+      if (!email || !password) {
+        throw createError(400, 'Email and password are required for login.')
+      }
+
+      const user = await this.#service.authenticate(email, password)
 
       const payload = {
         email: user?.email,
@@ -71,30 +80,25 @@ export class UsersController {
         expiresIn: process.env.ACCESS_TOKEN_LIFE!,
       })
 
-      res.status(201).json({ access_token: accessToken })
+      res.status(200).json({ access_token: accessToken })
     } catch (error: any) {
       error.status = 401
+      error.message = 'Invalid email or password.'
       next(error)
     }
   }
 
-
-
-  /**
+   /**
      * Authenticates requests.
      *
      * If authentication is successful, `req.user`is populated and the
      * request is authorized to continue.
      * If authentication fails, an unauthorized response will be sent.
-     *
-     * @param {object} req - Express request object.
-     * @param {object} res - Express response object.
-     * @param {Function} next - Express next middleware function.
      */
   async authenticateJWT(req: Request, res: Response, next: NextFunction) {
     try {
       const [authenticationScheme, token] = (req.headers.authorization?.split(' ') ?? []) as [string, string]
-      
+
       if (authenticationScheme !== 'Bearer') {
         throw new Error('Invalid authentication scheme. Authorization header must start with "Bearer"')
       }
