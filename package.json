@@ -27,7 +27,8 @@
     "morgan": "^1.10.0",
     "passport": "^0.6.0",
     "ts-node": "^10.9.1",
-    "validator": "^13.9.0"
+    "validator": "^13.9.0",
+    "typescript": "^5.0.2"
   },
   "devDependencies": {
     "@lnu/eslint-config": "^1.1.7",
@@ -38,7 +39,6 @@
     "@types/morgan": "^1.9.4",
     "@types/validator": "^13.7.14",
     "dotenv": "^16.0.3",
-    "nodemon": "^2.0.21",
-    "typescript": "^5.0.2"
+    "nodemon": "^2.0.21"
   }
 }
