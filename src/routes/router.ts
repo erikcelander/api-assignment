@@ -13,7 +13,7 @@ router.get('/', (req: Request, res: Response, next: NextFunction) => {
   
   res.status(200).json({
     message: 'Welcome to the Workout Tracker API!',
-    _links: links
+    links: links
   })
 })
 

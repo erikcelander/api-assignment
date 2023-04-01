@@ -53,7 +53,7 @@ export class UsersController {
 
       res.status(201).json({ 
         message: `User ${user.email} successfully created.`,
-        _links: links
+        links: links
      })
     } catch (error: any) {
       error.status = 400
@@ -88,7 +88,7 @@ export class UsersController {
 
       res.status(200).json({ 
         access_token: accessToken,
-        _links: [
+        links: [
           { rel: 'getWorkouts', href: '/api/v1/workouts', method: 'GET' },
           { rel: 'createWorkout', href: `/api/v1/workouts`, method: 'POST' },
           { rel: 'getExercises', href: '/api/v1/exercises', method: 'GET' },

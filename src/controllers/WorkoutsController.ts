@@ -84,7 +84,7 @@ export class WorkoutsController {
         for (let i = 0; i < exercises.length; i++) {
           const exercise = exercises[i]
 
-          const name = exercise.name ? exercise.name.trim() : `Exercise ${((await this.#exerciseService.get({ owner: (req as AuthenticatedRequest).user.id })).length + 1)}`
+          const name = exercise.name ? exercise.name.trim() : `Exercise ${(i + 1)}`
 
           const createdExercise = await this.#exerciseService.insert({
             name: name,
@@ -111,7 +111,7 @@ export class WorkoutsController {
       const links = generateResourceLinks('workout', workout.id, 'single')
       res.status(201).json({
         ...workout.toObject(),
-        _links: links
+        links: links
       })
 
     } catch (error: any) {
@@ -126,7 +126,7 @@ export class WorkoutsController {
     const links = generateResourceLinks('workout', req.workout?.id as string, 'single')
     res.status(200).json({
       ...req.workout?.toObject(),
-      _links: links
+      links: links
     })
   }
 
@@ -134,7 +134,7 @@ export class WorkoutsController {
     try {
       const workouts = await this.#workoutService.get({ owner: (req as AuthenticatedRequest).user.id })
       const links = generateResourceLinks('workout', '', 'all')
-      workouts.length === 0 ? res.status(200).json({ message: 'No workouts found', _links: links }) : res.status(200).json({ workouts: workouts as IWorkout[], _links: links })
+      workouts.length === 0 ? res.status(200).json({ message: 'No workouts found', links: links }) : res.status(200).json({ workouts: workouts as IWorkout[], links: links })
     } catch (error: any) {
       error.status = 500
       error.message = 'Something went wrong'
@@ -199,7 +199,7 @@ export class WorkoutsController {
       }
 
       const links = generateResourceLinks('workout', id, 'single')
-      res.status(200).json({ ...updatedWorkout.toObject(), _links: links })
+      res.status(200).json({ ...updatedWorkout.toObject(), links: links })
 
     } catch (error: any) {
       if (!error.status) {
@@ -226,14 +226,13 @@ export class WorkoutsController {
 
     if (!existingExercise && !id && name) {
       existingExercise = workout.exercises.find((exercise) => exercise.name === name)
-      if (existingExercise) {
-        exerciseData.id = existingExercise.id
-      }
     }
 
     let exercise = {} as ExerciseData
 
     if (existingExercise) {
+      exerciseData.id = existingExercise.id
+
       exercise = { ...existingExercise, ...exerciseData }
       if (name && name !== existingExercise.name) {
         const updatedExercise = await this.#exerciseService.update(id!, {
@@ -280,7 +279,7 @@ export class WorkoutsController {
       }
 
       if (exercises && exercises.length > 0 && workout) {
-        exercises = exercises.map((exerciseData: ExerciseData, index: number) => this.processExerciseForWorkout(workout as IWorkout, user, exerciseData))
+        exercises = exercises.map((exerciseData: ExerciseData) => this.processExerciseForWorkout(workout as IWorkout, user, exerciseData))
         workout.exercises = await Promise.all(exercises)
       }
 
@@ -290,7 +289,7 @@ export class WorkoutsController {
 
       const links = generateResourceLinks('workout', id, 'single')
 
-      res.status(200).json({ workout: updatedWorkout, _links: links })
+      res.status(200).json({ workout: updatedWorkout, links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -362,39 +361,8 @@ export class WorkoutsController {
   }
 
   /**
-   * Deletes a workout.
+   * Adds an exercise to a workout. If the exercise does not exist, it will be created.
    */
-  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      await this.#workoutService.delete(req.params.id)
-      res
-        .status(204)
-        .send('Workout successfully deleted')
-    } catch (error) {
-      next(error)
-    }
-  }
-
-
-  /* isNumberValid(value: number | undefined): boolean {
-     return value !== undefined && Number.isFinite(value) && value > 0
-   }
- 
-   validateExerciseData(exerciseData: ExerciseData, exerciseNumber: number): void {
-     if (!this.isNumberValid(exerciseData.reps)) {
-       throw new Error(`Invalid reps for exercise ${exerciseNumber}`)
-     }
-     if (!this.isNumberValid(exerciseData.sets)) {
-       throw new Error(`Invalid sets for exercise ${exerciseNumber}`)
-     }
-     if (!this.isNumberValid(exerciseData.weight)) {
-       throw new Error(`Invalid weight for exercise ${exerciseNumber}`)
-     }
-   }*/
-
-
-   /**
-    * Adds an exercise to a workout. If the exercise does not exist, it will be created.
   async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       let workout = req.workout as IWorkout
@@ -430,5 +398,41 @@ export class WorkoutsController {
 
       next(error)
     }
-  }*/
+  }
+
+  /**
+   * Deletes a workout.
+   */
+  async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await this.#workoutService.delete(req.params.id)
+      const workouts = await this.#workoutService.get({ owner: (req as AuthenticatedRequest).user.id })
+
+      res.status(204).json({
+        message: 'Workout deleted.',
+        workouts: workouts
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+
+  /* isNumberValid(value: number | undefined): boolean {
+     return value !== undefined && Number.isFinite(value) && value > 0
+   }
+ 
+   validateExerciseData(exerciseData: ExerciseData, exerciseNumber: number): void {
+     if (!this.isNumberValid(exerciseData.reps)) {
+       throw new Error(`Invalid reps for exercise ${exerciseNumber}`)
+     }
+     if (!this.isNumberValid(exerciseData.sets)) {
+       throw new Error(`Invalid sets for exercise ${exerciseNumber}`)
+     }
+     if (!this.isNumberValid(exerciseData.weight)) {
+       throw new Error(`Invalid weight for exercise ${exerciseNumber}`)
+     }
+   }*/
+
+
 }
