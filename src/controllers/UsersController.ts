@@ -10,6 +10,7 @@ import { Request, Response, NextFunction } from 'express'
 import { IUser } from '../models/user'
 import { UsersService } from '../services/UsersService'
 import createError from 'http-errors'
+import { generateResourceLinks } from '../config/hateoas'
 
 export interface AuthenticatedRequest extends Request {
   user: {
@@ -48,12 +49,11 @@ export class UsersController {
         password,
       } as IUser)
 
+      const links = generateResourceLinks('auth', '', 'login')
 
       res.status(201).json({ 
         message: `User ${user.email} successfully created.`,
-        _links: [
-          { rel: 'login', href: '/api/v1/auth/login', method: 'POST' },
-        ]
+        _links: links
      })
     } catch (error: any) {
       error.status = 400
@@ -84,6 +84,7 @@ export class UsersController {
         algorithm: 'RS256',
         expiresIn: process.env.ACCESS_TOKEN_LIFE!,
       })
+
 
       res.status(200).json({ 
         access_token: accessToken,
