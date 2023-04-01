@@ -76,7 +76,7 @@ export class ExercisesController {
   async get(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const links = generateResourceLinks('exercise', req.params.id, 'single')
-      res.status(200).json({ ...req.exercise, _links: links })
+      res.status(200).json({ ...req.exercise?.toObject(), _links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'

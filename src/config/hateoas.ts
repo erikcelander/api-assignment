@@ -46,13 +46,14 @@ export function generateResourceLinks(resource: string, id: string, type: 'singl
   }
 
   if (resource === 'auth' && type === 'all') {
-    links.push({
-      rel: 'login',
-      href: `/api/v1/${resource}/login`,
-      method: 'POST',
-    }, {
+    links.push( {
       rel: 'register',
       href: `/api/v1/${resource}/register`,
+      method: 'POST',
+    },
+      {
+      rel: 'login',
+      href: `/api/v1/${resource}/login`,
       method: 'POST',
     })
   }
