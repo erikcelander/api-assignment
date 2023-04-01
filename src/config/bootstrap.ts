@@ -6,7 +6,7 @@
  */
 
 import { IoCContainer } from '../util/IoCContainer'
-import dotenv from 'dotenv'
+//import dotenv from 'dotenv'
 
 import { User } from '../models/user'
 import { Exercise } from '../models/exercise'
@@ -28,7 +28,7 @@ import { WorkoutsController } from '../controllers/WorkoutsController'
 import { WebhooksController } from '../controllers/WebhooksController'
 import { Webhook } from '../models/webhook'
 
-dotenv.config()
+//dotenv.config()
 const iocContainer = new IoCContainer()
 
 // Register the connection string for the database.
