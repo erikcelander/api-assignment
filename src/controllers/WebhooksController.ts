@@ -3,6 +3,7 @@ import { Webhook, IWebhook } from '../models/webhook'
 import { WebhooksService } from '../services/WebhooksService'
 import createError from 'http-errors'
 import { AuthenticatedRequest } from './UsersController'
+import { WorkoutRequest } from './WorkoutsController'
 
 export class WebhooksController {
   #service: WebhooksService
@@ -18,7 +19,7 @@ export class WebhooksController {
     try {
       const { url } = req.body as { url: string }
       const { id } = (req as AuthenticatedRequest).user as { id: string }
-  
+
 
       if (!url) {
         throw createError(400, 'URL is required for webhook creation.')
@@ -40,27 +41,20 @@ export class WebhooksController {
    */
   async fire(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { id, payload } = req.body
 
-      if (!id) {
-        res.status(400).json({ message: 'Webhook id is required.' })
-        return
+      const { user: { id } } = req as AuthenticatedRequest
+      const { workout } = req as WorkoutRequest
+
+
+      const webhooks = await this.#service.get({ owner: id })
+
+      for (const webhook of webhooks) {
+        await fetch(webhook.url, {
+          method: 'POST',
+          body: JSON.stringify({ message: 'A workout has been created!', workout: workout}),
+          headers: { 'Content-Type': 'application/json' },
+        })
       }
-
-      const webhook = await this.#service.getById(id)
-
-      if (!webhook) {
-        res.status(404).json({ message: 'Webhook not found.' })
-        return
-      }
-
-      await fetch(webhook.url, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      res.status(200).json({ message: 'Webhook fired successfully.' })
     } catch (error) {
       next(error)
     }

@@ -14,7 +14,7 @@ import { IExercise } from '../models/exercise'
 import { ExercisesService } from '../services/ExercisesService'
 import { generateResourceLinks } from '../config/hateoas'
 
-interface WorkoutRequest extends Request {
+export interface WorkoutRequest extends Request {
   workout?: IWorkout
 }
 
@@ -102,11 +102,16 @@ export class WorkoutsController {
         }
       }
 
-      const workout = await this.#workoutService.insert({
+      const workout: IWorkout = await this.#workoutService.insert({
         name: name,
         owner: id,
         exercises: workoutExercises
-      } as IWorkout)
+      } as IWorkout);
+
+
+
+
+      (req as WorkoutRequest).workout = workout
 
       const links = generateResourceLinks('workout', workout.id, 'single')
       res.status(201).json({
@@ -228,7 +233,7 @@ export class WorkoutsController {
       existingExercise = workout.exercises.find((exercise) => exercise.name === name)
       if (existingExercise) {
         exerciseData.id = existingExercise.id
-     
+
       }
     }
 
@@ -363,68 +368,6 @@ export class WorkoutsController {
     return exercise
   }
 
-  /**
-   * Adds an exercise to a workout. If the exercise does not exist, it will be created.
-   */
-  async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
-    try {
-      let workout = req.workout as IWorkout
-      const { id, name, reps, sets, weight, description } = req.body
-
-      if ((!id || !weight || !reps || !sets) && (!name || !weight || !reps || !sets)) {
-        throw createError(400, 'Bad request.')
-      }
-
-      // Check if exercise ID is provided
-      if (id) {
-        const existingExercise = await this.#exerciseService.getOne(id)
-
-        if (!existingExercise) {
-          throw createError(400, 'Exercise does not exist.')
-        }
-
-        if (workout.exercises.find((exercise) => exercise.id === id)) {
-          throw createError(400, 'Exercise already exists in workout.')
-        }
-
-        // Add the existing exercise to the workout
-        workout.exercises.push({
-          id: existingExercise.id,
-          name: existingExercise.name,
-          reps: reps,
-          sets: sets,
-          weight: weight,
-        })
-      } else if (name && reps && sets && weight) {
-        // Create the new exercise through the exercise service
-        const createdExercise = await this.#exerciseService.insert({
-          name: name.trim(),
-          description: description?.trim(),
-          owner: (req as AuthenticatedRequest).user.id,
-        } as IExercise)
-
-        // Add the new exercise to the workout
-        workout.exercises.push({
-          id: createdExercise.id,
-          name: createdExercise.name,
-          reps: reps,
-          sets: sets,
-          weight: weight,
-        })
-      }
-
-      const updatedWorkout = await this.#workoutService.update(req.params.id, workout)
-      const links = generateResourceLinks('workout', req.params.id, 'single')
-      res.status(201).json({ workout: updatedWorkout, links })
-    } catch (error: any) {
-      console.log(error)
-      /*error.status = error.name === 'ValidationError' ? 400 : 500
-      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'*/
-
-      next(error)
-    }
-  }
-
 
   /**
    * Deletes a workout.
@@ -442,6 +385,69 @@ export class WorkoutsController {
       next(error)
     }
   }
+
+  /**
+ * Adds an exercise to a workout. If the exercise does not exist, it will be created.
+ *
+async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    let workout = req.workout as IWorkout
+    const { id, name, reps, sets, weight, description } = req.body
+
+    if ((!id || !weight || !reps || !sets) && (!name || !weight || !reps || !sets)) {
+      throw createError(400, 'Bad request.')
+    }
+
+    // Check if exercise ID is provided
+    if (id) {
+      const existingExercise = await this.#exerciseService.getOne(id)
+
+      if (!existingExercise) {
+        throw createError(400, 'Exercise does not exist.')
+      }
+
+      if (workout.exercises.find((exercise) => exercise.id === id)) {
+        throw createError(400, 'Exercise already exists in workout.')
+      }
+
+      // Add the existing exercise to the workout
+      workout.exercises.push({
+        id: existingExercise.id,
+        name: existingExercise.name,
+        reps: reps,
+        sets: sets,
+        weight: weight,
+      })
+    } else if (name && reps && sets && weight) {
+      // Create the new exercise through the exercise service
+      const createdExercise = await this.#exerciseService.insert({
+        name: name.trim(),
+        description: description?.trim(),
+        owner: (req as AuthenticatedRequest).user.id,
+      } as IExercise)
+
+      // Add the new exercise to the workout
+      workout.exercises.push({
+        id: createdExercise.id,
+        name: createdExercise.name,
+        reps: reps,
+        sets: sets,
+        weight: weight,
+      })
+    }
+
+    const updatedWorkout = await this.#workoutService.update(req.params.id, workout)
+    const links = generateResourceLinks('workout', req.params.id, 'single')
+    res.status(201).json({ workout: updatedWorkout, links })
+  } catch (error: any) {
+    console.log(error)
+    /*error.status = error.name === 'ValidationError' ? 400 : 500
+    error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+
+    next(error)
+  }
+} 
+*/
 
 
   /* isNumberValid(value: number | undefined): boolean {
