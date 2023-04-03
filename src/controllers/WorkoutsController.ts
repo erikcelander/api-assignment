@@ -371,7 +371,7 @@ export class WorkoutsController {
       let workout = req.workout as IWorkout
       const { id, name, reps, sets, weight, description } = req.body
 
-      if ((!id || !weight || !reps || !sets) || (!name || !weight || !reps || !sets)) {
+      if ((!id || !weight || !reps || !sets) && (!name || !weight || !reps || !sets)) {
         throw createError(400, 'Bad request.')
       }
 
