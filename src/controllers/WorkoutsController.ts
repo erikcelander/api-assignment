@@ -226,12 +226,15 @@ export class WorkoutsController {
 
     if (!existingExercise && !id && name) {
       existingExercise = workout.exercises.find((exercise) => exercise.name === name)
+      if (existingExercise) {
+        exerciseData.id = existingExercise.id
+     
+      }
     }
 
     let exercise = {} as ExerciseData
 
     if (existingExercise) {
-      exerciseData.id = existingExercise.id
 
       exercise = { ...existingExercise, ...exerciseData }
       if (name && name !== existingExercise.name) {
@@ -366,32 +369,53 @@ export class WorkoutsController {
   async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       let workout = req.workout as IWorkout
-      const newExercise = req.body
+      const { id, name, reps, sets, weight, description } = req.body
 
-      if (!newExercise || !newExercise.name || !newExercise.reps || !newExercise.sets || !newExercise.weight) {
-        throw createError(400, 'Exercise data is required to add an exercise.')
+      if ((!id || !weight || !reps || !sets) || (!name || !weight || !reps || !sets)) {
+        throw createError(400, 'Bad request.')
       }
 
-      // Create the new exercise through the exercise service
-      const createdExercise = await this.#exerciseService.insert({
-        name: newExercise.name.trim(),
-        description: newExercise.description?.trim(),
-        owner: (req as AuthenticatedRequest).user.id,
-      } as IExercise)
+      // Check if exercise ID is provided
+      if (id) {
+        const existingExercise = await this.#exerciseService.getOne(id)
 
-      // Add the new exercise to the workout
-      workout.exercises.push({
-        id: createdExercise.id,
-        name: createdExercise.name,
-        reps: newExercise.reps,
-        sets: newExercise.sets,
-        weight: newExercise.weight,
-      })
+        if (!existingExercise) {
+          throw createError(400, 'Exercise does not exist.')
+        }
+
+        if (workout.exercises.find((exercise) => exercise.id === id)) {
+          throw createError(400, 'Exercise already exists in workout.')
+        }
+
+        // Add the existing exercise to the workout
+        workout.exercises.push({
+          id: existingExercise.id,
+          name: existingExercise.name,
+          reps: reps,
+          sets: sets,
+          weight: weight,
+        })
+      } else if (name && reps && sets && weight) {
+        // Create the new exercise through the exercise service
+        const createdExercise = await this.#exerciseService.insert({
+          name: name.trim(),
+          description: description?.trim(),
+          owner: (req as AuthenticatedRequest).user.id,
+        } as IExercise)
+
+        // Add the new exercise to the workout
+        workout.exercises.push({
+          id: createdExercise.id,
+          name: createdExercise.name,
+          reps: reps,
+          sets: sets,
+          weight: weight,
+        })
+      }
 
       const updatedWorkout = await this.#workoutService.update(req.params.id, workout)
       const links = generateResourceLinks('workout', req.params.id, 'single')
       res.status(201).json({ workout: updatedWorkout, links })
-
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -399,6 +423,7 @@ export class WorkoutsController {
       next(error)
     }
   }
+
 
   /**
    * Deletes a workout.

@@ -66,5 +66,13 @@ export function generateResourceLinks(resource: string, id: string, type: 'singl
     })
   }
 
+  if (resource === 'webhooks' && type === 'all') {
+    links.push({
+      rel: 'webhooks',
+      href: `/api/v1/webhooks`,
+      method: 'POST',
+    })
+  }
+
   return links
 }

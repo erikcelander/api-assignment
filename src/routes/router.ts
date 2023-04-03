@@ -9,7 +9,8 @@ router.get('/', (req: Request, res: Response, next: NextFunction) => {
   const authLinks = generateResourceLinks('auth', '', 'all')
   const workoutLinks = generateResourceLinks('workout', '', 'all')
   const exerciseLinks = generateResourceLinks('exercise', '', 'all')
-  const links = [...authLinks, ...workoutLinks, ...exerciseLinks]
+  const webhookLinks = generateResourceLinks('webhook', '', 'all')
+  const links = [...authLinks, ...workoutLinks, ...exerciseLinks, ...webhookLinks]
   
   res.status(200).json({
     message: 'Welcome to the Workout Tracker API!',
