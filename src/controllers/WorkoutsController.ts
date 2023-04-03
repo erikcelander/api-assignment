@@ -417,8 +417,9 @@ export class WorkoutsController {
       const links = generateResourceLinks('workout', req.params.id, 'single')
       res.status(201).json({ workout: updatedWorkout, links })
     } catch (error: any) {
-      error.status = error.name === 'ValidationError' ? 400 : 500
-      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+      console.log(error)
+      /*error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'*/
 
       next(error)
     }
