@@ -185,10 +185,10 @@ export class WorkoutsController {
 
 
           } catch (error: any) {
-            if (error.name === 'BadRequestError') {
-              error.status = 400
-              error.message = `Exercise ${index + 1}: ${error.message}`
-            }
+     
+            error.status = 400
+            error.message = `Exercise ${index + 1}: ${error.message}`
+
 
             throw error
           }
@@ -207,10 +207,8 @@ export class WorkoutsController {
       res.status(200).json({ ...updatedWorkout.toObject(), links: links })
 
     } catch (error: any) {
-      if (!error.status) {
-        error.status = error.name === 'ValidationError' ? 400 : 500
-        error.message = error.name === 'ValidationError' ? 'Bad Request' : 'Something went wrong'
-      }
+      error.status = error.name === 'ValidationError' ? 400 : error.status
+      error.message = error.name === 'ValidationError' ? 'Bad Request' : error.message
 
       next(error)
     }
@@ -286,7 +284,7 @@ export class WorkoutsController {
         throw createError(400, 'Bad request.')
       }
 
-      if (exercises && exercises.length > 0 && workout) {
+      if (exercises && exercises.length > 0) {
         exercises = exercises.map((exerciseData: ExerciseData) => this.processExerciseForWorkout(workout as IWorkout, user, exerciseData))
         workout.exercises = await Promise.all(exercises)
       }
@@ -299,9 +297,8 @@ export class WorkoutsController {
 
       res.status(200).json({ workout: updatedWorkout, links: links })
     } catch (error: any) {
-      error.status = error.name === 'ValidationError' ? 400 : 500
-      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
-
+      error.status = error.name === 'ValidationError' ? 400 : error.status
+      error.message = error.name === 'ValidationError' ? 'Bad Request' : error.message
       next(error)
     }
   }
