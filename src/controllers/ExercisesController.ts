@@ -62,8 +62,13 @@ export class ExercisesController {
       const links = generateResourceLinks('exercise', exercise.id, 'single')
       res.status(201).json({ ...exercise.toObject(), links: links })
     } catch (error: any) {
-      error.status = error.name === 'ValidationError' ? 400 : 500
-      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+      if (error.name === 'MongoError' && error.code === 11000) {
+        error.status = 409
+        error.message = 'Exercise with the same name already exists.'
+      } else if (error.status !== 400) {
+        error.status = error.name === 'ValidationError' ? 400 : 500
+        error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+      }
 
       next(error)
     }
@@ -175,7 +180,7 @@ export class ExercisesController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await this.#service.delete(req.params.id)
-      res.status(204).json({message: 'Exercise successfully deleted'})
+      res.status(204).json({ message: 'Exercise successfully deleted' })
     } catch (error: any) {
       error.status = 500
       error.message = 'Something went wrong'

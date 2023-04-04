@@ -159,7 +159,7 @@ export class WorkoutsController {
       workout = workout?.toObject() as IWorkout
 
       if ((!name && (!exercises || !Array.isArray(exercises) || exercises.length === 0)) || (name && name.trim().length === 0 && exercises.length === 0) || (name && name.trim().length === 0 && !exercises)) {
-        throw createError(400, 'At least one property (name or exercises) is required for partial updates.')
+        throw createError(400, 'At least one property (name or exercises as an array) is required for partial updates.')
       }
 
       if (name) {
