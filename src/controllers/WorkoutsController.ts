@@ -158,7 +158,7 @@ export class WorkoutsController {
       let { workout } = req as WorkoutRequest
       workout = workout?.toObject() as IWorkout
 
-      if (!name && !exercises) {
+      if ((!name && (!exercises || !Array.isArray(exercises) || exercises.length === 0)) || (name && name.trim().length === 0 && exercises.length === 0) || (name && name.trim().length === 0 && !exercises)) {
         throw createError(400, 'At least one property (name or exercises) is required for partial updates.')
       }
 
@@ -185,7 +185,7 @@ export class WorkoutsController {
 
 
           } catch (error: any) {
-     
+
             error.status = 400
             error.message = `Exercise ${index + 1}: ${error.message}`
 
@@ -207,8 +207,11 @@ export class WorkoutsController {
       res.status(200).json({ ...updatedWorkout.toObject(), links: links })
 
     } catch (error: any) {
-      error.status = error.name === 'ValidationError' ? 400 : error.status
-      error.message = error.name === 'ValidationError' ? 'Bad Request' : error.message
+      if (error.status !== 400 && error.status !== 404) {
+        error.status = error.name === 'ValidationError' ? 400 : 500
+        error.message = error.name === 'ValidationError' ? 'Bad Request' : 'Something went wrong'
+      }  
+      
 
       next(error)
     }
