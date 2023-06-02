@@ -60,10 +60,15 @@ export class ExercisesController {
       } as IExercise)
 
       const links = generateResourceLinks('exercise', exercise.id, 'single')
-      res.status(201).json({ ...exercise as IExercise, _links: links })
+      res.status(201).json({ ...exercise.toObject(), links: links })
     } catch (error: any) {
-      error.status = error.name === 'ValidationError' ? 400 : 500
-      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+      if (error.name === 'MongoError' && error.code === 11000) {
+        error.status = 409
+        error.message = 'Exercise with the same name already exists.'
+      } else if (error.status !== 400) {
+        error.status = error.name === 'ValidationError' ? 400 : 500
+        error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+      }
 
       next(error)
     }
@@ -76,7 +81,7 @@ export class ExercisesController {
   async get(req: ExerciseRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const links = generateResourceLinks('exercise', req.params.id, 'single')
-      res.status(200).json({ ...req.exercise, _links: links })
+      res.status(200).json({ ...req.exercise?.toObject(), links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -97,14 +102,13 @@ export class ExercisesController {
       const workoutLinks = generateResourceLinks('workout', '', 'create')
 
 
-      console.log(exerciseLinks)
       if (exercises.length === 0) {
         res.status(204).json({
           message: 'No exercises found',
-          _links: [...exerciseLinks, ...workoutLinks]
+          links: [...exerciseLinks, ...workoutLinks]
         })
       } else {
-        res.status(200).json({ exercises, _links: [...exerciseLinks, ...workoutLinks] })
+        res.status(200).json({ exercises, links: [...exerciseLinks, ...workoutLinks] })
       }
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
@@ -136,7 +140,7 @@ export class ExercisesController {
       const updatedExercise = await this.#service.update(req.exercise.id, partialExercise)
 
       const links = generateResourceLinks('exercise', req.params.id, 'single')
-      res.status(200).json({ exercise: updatedExercise, _links: links })
+      res.status(200).json({ exercise: updatedExercise, links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -144,6 +148,9 @@ export class ExercisesController {
     }
   }
 
+  /**
+   * Updates the specified exercise.
+   */
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { name, description } = req.body
@@ -158,7 +165,7 @@ export class ExercisesController {
       } as IExercise)
 
       const links = generateResourceLinks('exercise', req.params.id, 'single')
-      res.status(200).json({ exercise: updatedExercise, _links: links })
+      res.status(200).json({ exercise: updatedExercise, links: links })
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
       error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
@@ -173,7 +180,7 @@ export class ExercisesController {
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await this.#service.delete(req.params.id)
-      res.status(204).send('Exercise successfully deleted')
+      res.status(204).json({ message: 'Exercise successfully deleted' })
     } catch (error: any) {
       error.status = 500
       error.message = 'Something went wrong'

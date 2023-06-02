@@ -1,6 +1,6 @@
 import mongoose, { Document, Model } from 'mongoose'
 
-export interface IWebhook extends Document {
+interface IWebhook extends Document {
   url: string
   owner: string
 }
@@ -34,4 +34,6 @@ schema.set('timestamps', true)
 schema.set('toObject', convertOptions)
 schema.set('toJSON', convertOptions)
 
-export const Webhook: IWebhookModel = mongoose.model<IWebhook>('Webhook', schema)
+const Webhook: IWebhookModel = mongoose.model<IWebhook>('Webhook', schema)
+
+export { Webhook, IWebhookModel, IWebhook }

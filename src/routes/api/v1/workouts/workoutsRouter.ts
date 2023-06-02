@@ -17,12 +17,7 @@ router.get('/', (req: Request, res: Response, next: NextFunction) => workoutsCon
 router.get('/:id', (req: Request, res: Response, next: NextFunction) => workoutsController.get(req, res, next))
 
 // POST routes for /api/v1/workouts
-router.post('/', 
-  (req: Request, res: Response, next: NextFunction) => {
-    workoutsController.create(req, res, next)
-  }, (req: Request, res: Response, next: NextFunction) => {
-    webhooksController.fire(req, res, next)
-  })
+router.post('/', (req: Request, res: Response, next: NextFunction) => workoutsController.create(req, res, next), (req: Request, res: Response, next: NextFunction) => webhooksController.fire(req, res, next))
 //router.post('/:id', (req: Request, res: Response, next: NextFunction) => workoutsController.addExerciseToWorkout(req, res, next))
 
 // PATCH routes for /api/v1/workouts

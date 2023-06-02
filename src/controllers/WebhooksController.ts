@@ -19,7 +19,6 @@ export class WebhooksController {
       const { url } = req.body as { url: string }
       const { id } = (req as AuthenticatedRequest).user as { id: string }
 
-      console.log('skapar webhook')
 
       if (!url) {
         throw createError(400, 'URL is required for webhook creation.')
@@ -30,7 +29,7 @@ export class WebhooksController {
         owner: id
       } as IWebhook)
 
-      
+
       res.status(201).json({ message: 'Webhook created successfully', webhook })
     } catch (error) {
       next(error)
@@ -42,24 +41,18 @@ export class WebhooksController {
    */
   async fire(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { payload } = req.body
-      console.log('body', req.body)
-      console.log('payload', payload)
       const { id } = (req as AuthenticatedRequest).user as { id: string }
-      console.log('id', id)
-
 
       const webhook = await this.#service.get({ owner: id })
-
 
       for (const hook of webhook) {
         try {
           await fetch(hook.url, {
             method: 'POST',
             body: JSON.stringify(req.body),
-          });
+          })
         } catch (error) {
-          console.error('Error occurred during webhook request:', error);
+          console.error('Error occurred during webhook request:', error)
         }
       }
 
