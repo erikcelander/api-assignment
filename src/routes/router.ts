@@ -4,7 +4,6 @@ import { router as v1Router } from './api/v1/router'
 
 export const router = express.Router()
 
-
 // Route to API v1
 router.use('/api/v1', v1Router)
 

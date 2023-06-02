@@ -14,7 +14,7 @@ import { IExercise } from '../models/exercise'
 import { ExercisesService } from '../services/ExercisesService'
 import { generateResourceLinks } from '../config/hateoas'
 
-export interface WorkoutRequest extends Request {
+interface WorkoutRequest extends Request {
   workout?: IWorkout
 }
 
@@ -84,7 +84,7 @@ export class WorkoutsController {
         for (let i = 0; i < exercises.length; i++) {
           const exercise = exercises[i]
 
-          const name = exercise.name ? exercise.name.trim() : `Exercise ${(i + 1)}`
+          const name = exercise.name ? exercise.name.trim() : `Exercise ${((await this.#exerciseService.get({ owner: (req as AuthenticatedRequest).user.id })).length + 1)}`
 
           const createdExercise = await this.#exerciseService.insert({
             name: name,
@@ -102,22 +102,19 @@ export class WorkoutsController {
         }
       }
 
-      const workout: IWorkout = await this.#workoutService.insert({
+      const workout = await this.#workoutService.insert({
         name: name,
         owner: id,
         exercises: workoutExercises
-      } as IWorkout);
-
-
-
-
-      (req as WorkoutRequest).workout = workout
+      } as IWorkout)
 
       const links = generateResourceLinks('workout', workout.id, 'single')
       res.status(201).json({
         ...workout.toObject(),
-        links: links
-      })
+        _links: links
+      }).end()
+
+      return next()
 
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
@@ -131,7 +128,7 @@ export class WorkoutsController {
     const links = generateResourceLinks('workout', req.workout?.id as string, 'single')
     res.status(200).json({
       ...req.workout?.toObject(),
-      links: links
+      _links: links
     })
   }
 
@@ -139,7 +136,7 @@ export class WorkoutsController {
     try {
       const workouts = await this.#workoutService.get({ owner: (req as AuthenticatedRequest).user.id })
       const links = generateResourceLinks('workout', '', 'all')
-      workouts.length === 0 ? res.status(200).json({ message: 'No workouts found', links: links }) : res.status(200).json({ workouts: workouts as IWorkout[], links: links })
+      workouts.length === 0 ? res.status(200).json({ message: 'No workouts found', _links: links }) : res.status(200).json({ workouts: workouts as IWorkout[], _links: links })
     } catch (error: any) {
       error.status = 500
       error.message = 'Something went wrong'
@@ -158,8 +155,8 @@ export class WorkoutsController {
       let { workout } = req as WorkoutRequest
       workout = workout?.toObject() as IWorkout
 
-      if ((!name && (!exercises || !Array.isArray(exercises) || exercises.length === 0)) || (name && name.trim().length === 0 && exercises.length === 0) || (name && name.trim().length === 0 && !exercises)) {
-        throw createError(400, 'At least one property (name or exercises as an array) is required for partial updates.')
+      if (!name && !exercises) {
+        throw createError(400, 'At least one property (name or exercises) is required for partial updates.')
       }
 
       if (name) {
@@ -185,10 +182,10 @@ export class WorkoutsController {
 
 
           } catch (error: any) {
-
-            error.status = 400
-            error.message = `Exercise ${index + 1}: ${error.message}`
-
+            if (error.name === 'BadRequestError') {
+              error.status = 400
+              error.message = `Exercise ${index + 1}: ${error.message}`
+            }
 
             throw error
           }
@@ -204,14 +201,13 @@ export class WorkoutsController {
       }
 
       const links = generateResourceLinks('workout', id, 'single')
-      res.status(200).json({ ...updatedWorkout.toObject(), links: links })
+      res.status(200).json({ ...updatedWorkout.toObject(), _links: links })
 
     } catch (error: any) {
-      if (error.status !== 400 && error.status !== 404) {
+      if (!error.status) {
         error.status = error.name === 'ValidationError' ? 400 : 500
         error.message = error.name === 'ValidationError' ? 'Bad Request' : 'Something went wrong'
-      }  
-      
+      }
 
       next(error)
     }
@@ -234,14 +230,12 @@ export class WorkoutsController {
       existingExercise = workout.exercises.find((exercise) => exercise.name === name)
       if (existingExercise) {
         exerciseData.id = existingExercise.id
-
       }
     }
 
     let exercise = {} as ExerciseData
 
     if (existingExercise) {
-
       exercise = { ...existingExercise, ...exerciseData }
       if (name && name !== existingExercise.name) {
         const updatedExercise = await this.#exerciseService.update(id!, {
@@ -287,8 +281,8 @@ export class WorkoutsController {
         throw createError(400, 'Bad request.')
       }
 
-      if (exercises && exercises.length > 0) {
-        exercises = exercises.map((exerciseData: ExerciseData) => this.processExerciseForWorkout(workout as IWorkout, user, exerciseData))
+      if (exercises && exercises.length > 0 && workout) {
+        exercises = exercises.map((exerciseData: ExerciseData, index: number) => this.processExerciseForWorkout(workout as IWorkout, user, exerciseData))
         workout.exercises = await Promise.all(exercises)
       }
 
@@ -298,10 +292,11 @@ export class WorkoutsController {
 
       const links = generateResourceLinks('workout', id, 'single')
 
-      res.status(200).json({ workout: updatedWorkout, links: links })
+      res.status(200).json({ workout: updatedWorkout, _links: links })
     } catch (error: any) {
-      error.status = error.name === 'ValidationError' ? 400 : error.status
-      error.message = error.name === 'ValidationError' ? 'Bad Request' : error.message
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+
       next(error)
     }
   }
@@ -368,86 +363,19 @@ export class WorkoutsController {
     return exercise
   }
 
-
   /**
    * Deletes a workout.
    */
   async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await this.#workoutService.delete(req.params.id)
-      const workouts = await this.#workoutService.get({ owner: (req as AuthenticatedRequest).user.id })
-
-      res.status(204).json({
-        message: 'Workout deleted.',
-        workouts: workouts
-      })
+      res
+        .status(204)
+        .send('Workout successfully deleted')
     } catch (error) {
       next(error)
     }
   }
-
-  /**
- * Adds an exercise to a workout. If the exercise does not exist, it will be created.
- *
-async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
-  try {
-    let workout = req.workout as IWorkout
-    const { id, name, reps, sets, weight, description } = req.body
-
-    if ((!id || !weight || !reps || !sets) && (!name || !weight || !reps || !sets)) {
-      throw createError(400, 'Bad request.')
-    }
-
-    // Check if exercise ID is provided
-    if (id) {
-      const existingExercise = await this.#exerciseService.getOne(id)
-
-      if (!existingExercise) {
-        throw createError(400, 'Exercise does not exist.')
-      }
-
-      if (workout.exercises.find((exercise) => exercise.id === id)) {
-        throw createError(400, 'Exercise already exists in workout.')
-      }
-
-      // Add the existing exercise to the workout
-      workout.exercises.push({
-        id: existingExercise.id,
-        name: existingExercise.name,
-        reps: reps,
-        sets: sets,
-        weight: weight,
-      })
-    } else if (name && reps && sets && weight) {
-      // Create the new exercise through the exercise service
-      const createdExercise = await this.#exerciseService.insert({
-        name: name.trim(),
-        description: description?.trim(),
-        owner: (req as AuthenticatedRequest).user.id,
-      } as IExercise)
-
-      // Add the new exercise to the workout
-      workout.exercises.push({
-        id: createdExercise.id,
-        name: createdExercise.name,
-        reps: reps,
-        sets: sets,
-        weight: weight,
-      })
-    }
-
-    const updatedWorkout = await this.#workoutService.update(req.params.id, workout)
-    const links = generateResourceLinks('workout', req.params.id, 'single')
-    res.status(201).json({ workout: updatedWorkout, links })
-  } catch (error: any) {
-    console.log(error)
-    /*error.status = error.name === 'ValidationError' ? 400 : 500
-    error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
-
-    next(error)
-  }
-} 
-*/
 
 
   /* isNumberValid(value: number | undefined): boolean {
@@ -467,4 +395,42 @@ async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunctio
    }*/
 
 
+   /**
+    * Adds an exercise to a workout. If the exercise does not exist, it will be created.
+  async addExerciseToWorkout(req: WorkoutRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      let workout = req.workout as IWorkout
+      const newExercise = req.body
+
+      if (!newExercise || !newExercise.name || !newExercise.reps || !newExercise.sets || !newExercise.weight) {
+        throw createError(400, 'Exercise data is required to add an exercise.')
+      }
+
+      // Create the new exercise through the exercise service
+      const createdExercise = await this.#exerciseService.insert({
+        name: newExercise.name.trim(),
+        description: newExercise.description?.trim(),
+        owner: (req as AuthenticatedRequest).user.id,
+      } as IExercise)
+
+      // Add the new exercise to the workout
+      workout.exercises.push({
+        id: createdExercise.id,
+        name: createdExercise.name,
+        reps: newExercise.reps,
+        sets: newExercise.sets,
+        weight: newExercise.weight,
+      })
+
+      const updatedWorkout = await this.#workoutService.update(req.params.id, workout)
+      const links = generateResourceLinks('workout', req.params.id, 'single')
+      res.status(201).json({ workout: updatedWorkout, links })
+
+    } catch (error: any) {
+      error.status = error.name === 'ValidationError' ? 400 : 500
+      error.message = error.name === 'ValidationError' ? 'Bad request' : 'Something went wrong'
+
+      next(error)
+    }
+  }*/
 }

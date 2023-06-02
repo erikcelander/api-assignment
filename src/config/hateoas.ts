@@ -1,4 +1,4 @@
-export function generateResourceLinks(resource: string, id: string, type: 'single' | 'all' | 'create' | 'addExercise' | 'partialUpdate' | 'update' | 'delete' | 'login' | 'register') {
+export function generateResourceLinks(resource: string, id: string, type: 'single' | 'all' | 'create' | 'addExercise' | 'partialUpdate' | 'update' | 'delete') {
   const links = []
 
   if (type === 'single' || type === 'update' || type === 'delete') {
@@ -21,7 +21,7 @@ export function generateResourceLinks(resource: string, id: string, type: 'singl
     )
   }
 
-  if (resource !== 'auth' && (type === 'all' || type === 'create')) {
+  if (type === 'all' || type === 'create') {
     links.push({
       rel: 'create',
       href: `/api/v1/${resource}s`,
@@ -42,35 +42,6 @@ export function generateResourceLinks(resource: string, id: string, type: 'singl
       rel: 'partialUpdate',
       href: `/api/v1/${resource}s/${id}`,
       method: 'PATCH',
-    })
-  }
-
-  if (resource === 'auth' && type === 'all') {
-    links.push( {
-      rel: 'register',
-      href: `/api/v1/${resource}/register`,
-      method: 'POST',
-    },
-      {
-      rel: 'login',
-      href: `/api/v1/${resource}/login`,
-      method: 'POST',
-    })
-  }
-
-  if (resource === 'auth' && (type === 'login' || type === 'register')) {
-    links.push({
-      rel: `${type}`,
-      href: `/api/v1/${resource}/${type}`,
-      method: 'POST',
-    })
-  }
-
-  if (resource === 'webhooks' && type === 'all') {
-    links.push({
-      rel: 'webhooks',
-      href: `/api/v1/webhooks`,
-      method: 'POST',
     })
   }
 

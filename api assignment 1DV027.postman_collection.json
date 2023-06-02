@@ -7,6 +7,28 @@
 	},
 	"item": [
 		{
+			"name": "API entrypoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api-application.herokuapp.com/api/v1/",
+					"protocol": "https",
+					"host": [
+						"api-application",
+						"herokuapp",
+						"com"
+					],
+					"path": [
+						"api",
+						"v1",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Register user",
 			"request": {
 				"method": "POST",
