@@ -3,6 +3,7 @@ import { Webhook, IWebhook } from '../models/webhook'
 import { WebhooksService } from '../services/WebhooksService'
 import createError from 'http-errors'
 import { AuthenticatedRequest } from './UsersController'
+import { WorkoutRequest } from './WorkoutsController'
 
 export class WebhooksController {
   #service: WebhooksService
@@ -49,12 +50,14 @@ export class WebhooksController {
         try {
           await fetch(hook.url, {
             method: 'POST',
-            body: JSON.stringify(req.body),
+            body: JSON.stringify((req as WorkoutRequest).workout),
           })
         } catch (error) {
           console.error('Error occurred during webhook request:', error)
         }
       }
+
+      
 
     } catch (error) {
       next(error)

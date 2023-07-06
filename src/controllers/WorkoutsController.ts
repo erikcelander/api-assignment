@@ -118,6 +118,7 @@ export class WorkoutsController {
         ...workout.toObject(),
         links: links
       })
+      return next()
 
     } catch (error: any) {
       error.status = error.name === 'ValidationError' ? 400 : 500
@@ -210,8 +211,8 @@ export class WorkoutsController {
       if (error.status !== 400 && error.status !== 404) {
         error.status = error.name === 'ValidationError' ? 400 : 500
         error.message = error.name === 'ValidationError' ? 'Bad Request' : 'Something went wrong'
-      }  
-      
+      }
+
 
       next(error)
     }
